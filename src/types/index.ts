@@ -30,6 +30,7 @@ export type Project = {
   review_count?: number;
   badge?: string;
   accent_color?: string;
+  demo_url?: string;
 };
 
 export type UserProfile = {
