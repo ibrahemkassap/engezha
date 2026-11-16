@@ -103,7 +103,8 @@ export function MobileNavigation() {
       {/* Full-Screen Mobile Drawer with 100% Solid Opaque Background */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-16 sm:top-20 bottom-0 z-[100] flex flex-col justify-between overflow-y-auto bg-white dark:bg-[#120E24] border-t border-brand-border dark:border-brand-dark-border px-5 py-6 shadow-2xl transition-all"
+          className="fixed inset-0 top-16 sm:top-20 z-[999] flex flex-col justify-between overflow-y-auto bg-white dark:bg-[#120E24] border-t border-brand-border dark:border-brand-dark-border px-5 py-6 shadow-2xl"
+          style={{ isolation: 'isolate' }}
         >
           {/* Navigation Items List */}
           <div className="space-y-2">
