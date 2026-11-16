@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <rect width="800" height="500" fill="#F8FAFC"/>
+  <rect x="50" y="40" width="700" height="420" rx="12" fill="#FFFFFF" stroke="#E4E7EC" stroke-width="2"/>
+  <rect x="80" y="70" width="300" height="340" rx="8" fill="#F1F5F9"/>
+  <rect x="410" y="70" width="310" height="340" rx="8" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="565" y="110" font-family="sans-serif" font-size="18" fill="#101828" font-weight="bold">حاسبة التمويل والأقساط</text>
+  <rect x="430" y="140" width="270" height="36" rx="6" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <rect x="430" y="190" width="270" height="36" rx="6" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <rect x="430" y="240" width="270" height="36" rx="6" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <rect x="430" y="300" width="270" height="45" rx="8" fill="#4F46E5"/>
+  <text x="565" y="328" font-family="sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle" font-weight="bold">احسب القسط الشهري</text>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <!-- Background rounded square gradient (Deep purple to violet) -->
+    <linearGradient id="sqGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4C1D95" />
+      <stop offset="60%" stop-color="#581C87" />
+      <stop offset="100%" stop-color="#6B21A8" />
+    </linearGradient>
+
+    <!-- Subtle checkmark light gradient -->
+    <linearGradient id="chkGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#E2D4F0" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+  </defs>
+
+  <!-- Purple rounded square container -->
+  <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#sqGrad)" />
+
+  <!-- Subtle tech dot grid in background inside square -->
+  <g opacity="0.16" fill="#FFFFFF">
+    <circle cx="24" cy="32" r="1.5" />
+    <circle cx="32" cy="32" r="1.5" />
+    <circle cx="24" cy="40" r="1.5" />
+    <circle cx="32" cy="40" r="1.5" />
+    <circle cx="70" cy="70" r="1.5" />
+    <circle cx="78" cy="70" r="1.5" />
+    <circle cx="70" cy="78" r="1.5" />
+    <circle cx="78" cy="78" r="1.5" />
+  </g>
+
+  <!-- Rocket Flame / Tip (Vibrant Orange Arrow Tip) -->
+  <polygon points="76,14 88,34 68,44" fill="#F97316" />
+
+  <!-- Rocket / Checkmark Body -->
+  <!-- Combines the checkmark on the left and the launching rocket body pointing top-right -->
+  <path
+    d="M 18,48 
+       L 36,66 
+       C 39,69 43,69 46,66 
+       L 76,28 
+       L 85,35 
+       L 45,78 
+       C 40,83 32,83 27,78 
+       L 12,56 
+       Z"
+    fill="url(#chkGrad)"
+  />
+
+  <!-- Rocket window / indicator (Oval purple cockpit) -->
+  <ellipse cx="67" cy="42" rx="4.5" ry="7" transform="rotate(-40 67 42)" fill="#581C87" />
+</svg>
