@@ -59,37 +59,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, fetchProfile]);
 
   useEffect(() => {
-    const supabase = createClient();
+    let unsubscribe = () => {};
 
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email });
-        fetchProfile(session.user.id, session.user.email).finally(() => {
+    try {
+      const supabase = createClient();
+
+      // Check active session safely
+      supabase.auth
+        .getSession()
+        .then(({ data }) => {
+          const session = data?.session;
+          if (session?.user) {
+            setUser({ id: session.user.id, email: session.user.email });
+            fetchProfile(session.user.id, session.user.email).finally(() => {
+              setIsLoading(false);
+            });
+          } else {
+            setUser(null);
+            setProfile(null);
+            setIsLoading(false);
+          }
+        })
+        .catch(() => {
+          setUser(null);
+          setProfile(null);
           setIsLoading(false);
         });
-      } else {
-        setUser(null);
-        setProfile(null);
-        setIsLoading(false);
-      }
-    });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email });
-        await fetchProfile(session.user.id, session.user.email);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        try {
+          if (session?.user) {
+            setUser({ id: session.user.id, email: session.user.email });
+            await fetchProfile(session.user.id, session.user.email);
+          } else {
+            setUser(null);
+            setProfile(null);
+          }
+        } catch {
+          // Non-blocking
+        } finally {
+          setIsLoading(false);
+        }
+      });
+
+      unsubscribe = () => {
+        subscription.unsubscribe();
+      };
+    } catch {
+      setUser(null);
+      setProfile(null);
       setIsLoading(false);
-    });
+    }
 
     return () => {
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, [fetchProfile]);
 
