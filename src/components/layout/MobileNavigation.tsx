@@ -14,8 +14,11 @@ import {
   ChevronLeft,
   Mail,
   ShieldCheck,
+  PhoneCall,
 } from 'lucide-react';
 import { useProjectTransition } from '@/components/transitions/ProjectTransitionContext';
+import { BrandLogo } from './BrandLogo';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export function MobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,18 +27,21 @@ export function MobileNavigation() {
   const toggle = () => setIsOpen((prev) => !prev);
   const close = () => setIsOpen(false);
 
-  // Lock body scroll when mobile menu is open to prevent page bleed
+  // Strictly lock body scroll when mobile menu is open to prevent page bleed
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     } else {
       document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
     return () => {
       document.body.style.overflow = '';
-      document.body.style.touchAction = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [isOpen]);
 
@@ -75,7 +81,7 @@ export function MobileNavigation() {
     },
     {
       title: 'ابدأ مشروعك الرقمي',
-      description: 'طلب تنفيذ مخصص من الصفر',
+      description: 'طلب تنفيذ مخصص وسريع من الصفر',
       href: '/start-project',
       icon: Rocket,
       isAction: true,
@@ -89,98 +95,147 @@ export function MobileNavigation() {
       <button
         onClick={toggle}
         type="button"
-        className="p-2.5 rounded-xl text-brand-text dark:text-brand-dark-text hover:bg-brand-subtle dark:hover:bg-brand-dark-border focus:outline-none focus:ring-2 focus:ring-brand-primary transition-colors"
+        className="p-2.5 rounded-xl bg-slate-100 dark:bg-brand-dark-surface text-brand-text dark:text-brand-dark-text border border-brand-border dark:border-brand-dark-border focus:outline-none focus:ring-2 focus:ring-brand-primary active:scale-95 transition-all"
         aria-label={isOpen ? 'إغلاق القائمة' : 'فتح القائمة الرئيسية'}
         aria-expanded={isOpen}
       >
         {isOpen ? (
           <X className="w-6 h-6 text-brand-primary dark:text-brand-dark-primary" />
         ) : (
-          <Menu className="w-6 h-6" />
+          <Menu className="w-6 h-6 text-brand-text dark:text-brand-dark-text" />
         )}
       </button>
 
-      {/* Full-Screen Mobile Drawer with 100% Solid Opaque Background */}
+      {/* 100% Solid, Opaque Full-Screen Mobile Drawer */}
       {isOpen && (
         <div
-          className="fixed inset-0 top-16 sm:top-20 z-[999] flex flex-col justify-between overflow-y-auto bg-white dark:bg-[#120E24] border-t border-brand-border dark:border-brand-dark-border px-5 py-6 shadow-2xl"
-          style={{ isolation: 'isolate' }}
+          className="fixed inset-0 z-[99999] flex flex-col bg-white dark:bg-[#0B0F19] text-brand-text dark:text-brand-dark-text w-full h-[100dvh] overflow-y-auto"
+          style={{
+            backgroundColor: 'var(--mobile-menu-bg, #ffffff)',
+            color: 'inherit',
+          }}
         >
+          {/* Top Header inside Drawer */}
+          <div className="h-16 sm:h-20 px-5 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0B0F19] flex-shrink-0">
+            <div onClick={close}>
+              <BrandLogo />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <button
+                onClick={close}
+                type="button"
+                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-brand-text dark:text-white border border-slate-200 dark:border-slate-700 hover:bg-slate-200 transition-colors"
+                aria-label="إغلاق القائمة"
+              >
+                <X className="w-6 h-6 text-brand-primary dark:text-brand-dark-primary" />
+              </button>
+            </div>
+          </div>
+
           {/* Navigation Items List */}
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold text-brand-muted dark:text-brand-dark-muted uppercase tracking-wider block px-2 mb-3">
-              روابط التنقل
-            </span>
+          <div className="flex-1 px-5 py-6 space-y-6 overflow-y-auto bg-white dark:bg-[#0B0F19]">
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block px-2 mb-3">
+                أقسام المنصة والتنقل
+              </span>
 
-            <nav className="space-y-1.5">
-              {navItems.map((item, idx) => {
-                const Icon = item.icon;
+              <nav className="space-y-2">
+                {navItems.map((item, idx) => {
+                  const Icon = item.icon;
 
-                if (item.isAction) {
+                  if (item.isAction) {
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={handleLaunch}
+                        className="w-full flex items-center justify-between p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900/50 text-right hover:border-brand-action transition-all group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-brand-action text-white flex items-center justify-center shadow-xs">
+                            <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-extrabold text-orange-950 dark:text-orange-200 group-hover:text-brand-action transition-colors">
+                              {item.title}
+                            </h4>
+                            <p className="text-xs text-orange-800/80 dark:text-orange-300/80 mt-0.5">
+                              {item.description}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronLeft className="w-4 h-4 text-brand-action group-hover:-translate-x-1 transition-transform" />
+                      </button>
+                    );
+                  }
+
                   return (
-                    <button
+                    <Link
                       key={idx}
-                      type="button"
-                      onClick={handleLaunch}
-                      className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-brand-subtle/80 dark:bg-brand-dark-surface border border-purple-200/60 dark:border-brand-dark-border text-right hover:border-brand-primary transition-all group"
+                      href={item.href}
+                      onClick={close}
+                      className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 hover:bg-slate-100 dark:hover:bg-slate-800/90 border border-slate-200/70 dark:border-slate-800 text-right transition-all group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-brand-primary text-white flex items-center justify-center shadow-xs">
-                          <Icon className="w-5 h-5 text-orange-300 group-hover:scale-110 transition-transform" />
+                        <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 text-brand-primary dark:text-brand-dark-primary shadow-xs flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <Icon className="w-4 h-4" />
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-brand-text dark:text-brand-dark-text group-hover:text-brand-primary dark:group-hover:text-brand-dark-primary transition-colors">
+                          <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-primary dark:group-hover:text-brand-dark-primary transition-colors">
                             {item.title}
                           </h4>
-                          <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-0.5">
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
                             {item.description}
                           </p>
                         </div>
                       </div>
-                      <ChevronLeft className="w-4 h-4 text-brand-muted dark:text-brand-dark-muted group-hover:-translate-x-1 transition-transform" />
-                    </button>
+                      <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
+                    </Link>
                   );
-                }
+                })}
+              </nav>
+            </div>
 
-                return (
-                  <Link
-                    key={idx}
-                    href={item.href}
-                    onClick={close}
-                    className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-brand-dark-surface/60 border border-transparent hover:border-brand-border dark:hover:border-brand-dark-border text-right transition-all group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-brand-dark-surface text-brand-muted dark:text-brand-dark-muted flex items-center justify-center group-hover:bg-brand-subtle dark:group-hover:bg-brand-dark-border group-hover:text-brand-primary dark:group-hover:text-brand-dark-primary transition-colors">
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-brand-text dark:text-brand-dark-text group-hover:text-brand-primary dark:group-hover:text-brand-dark-primary transition-colors">
-                          {item.title}
-                        </h4>
-                        <p className="text-[11px] text-brand-muted dark:text-brand-dark-muted">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronLeft className="w-4 h-4 text-slate-300 dark:text-brand-dark-muted group-hover:-translate-x-1 transition-transform" />
-                  </Link>
-                );
-              })}
-            </nav>
+            {/* Quick WhatsApp Action Banner */}
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center">
+                  <PhoneCall className="w-4 h-4" />
+                </div>
+                <div>
+                  <h5 className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                    تواصل مباشر واتساب
+                  </h5>
+                  <p className="text-[11px] text-emerald-700 dark:text-emerald-300" dir="ltr">
+                    01017358087
+                  </p>
+                </div>
+              </div>
+              <a
+                href="https://wa.me/201017358087?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D9%81%D8%B1%D9%8A%D9%82%20%D8%A3%D9%86%D8%AC%D8%B2%D9%87%D8%A7%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D9%81%D9%8A%20%D8%A7%D8%B3%D8%AA%D8%B4%D8%A7%D8%B1%D8%A9%20%D8%AD%D9%88%D9%84%20%D8%AA%D9%86%D9%81%D9%8A%D8%B0%20%D9%85%D8%B4%D8%B1%D9%88%D8%B9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors"
+              >
+                محادثة
+              </a>
+            </div>
           </div>
 
-          {/* Bottom Call to Action and Contact */}
-          <div className="pt-6 mt-6 border-t border-brand-border/80 dark:border-brand-dark-border space-y-4">
+          {/* Bottom Footer inside Drawer */}
+          <div className="p-5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B0F19] flex-shrink-0 space-y-3">
             <button
               type="button"
               onClick={handleLaunch}
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl bg-brand-action hover:bg-brand-actionHover dark:bg-brand-dark-action dark:hover:bg-[#E05E00] text-white font-bold text-sm shadow-md shadow-orange-900/20 active:scale-[0.98] transition-all"
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl bg-brand-action hover:bg-brand-actionHover text-white font-extrabold text-sm shadow-lg shadow-orange-900/20 active:scale-[0.98] transition-all"
             >
               <span>ناقش مشروعك الآن</span>
               <ArrowLeft className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center justify-between text-xs text-brand-muted dark:text-brand-dark-muted px-1">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1 pt-1">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>فكرتك تستاهل تتنفذ باحتراف</span>

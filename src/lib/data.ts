@@ -52,8 +52,11 @@ export async function getPublishedProjects(): Promise<Project[]> {
       });
     }
 
+    const demoMap = new Map(DEMO_PROJECTS.map((dp) => [dp.slug, dp.demo_url]));
+
     return projects.map((p) => ({
       ...p,
+      demo_url: p.demo_url || demoMap.get(p.slug) || `/demos/${p.slug}/index.html`,
       avg_rating: ratingsMap.get(p.id)?.avg_rating,
       review_count: ratingsMap.get(p.id)?.review_count || 0,
     })) as Project[];
@@ -80,6 +83,8 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
       return DEMO_PROJECTS.find((p) => p.slug === slug) || null;
     }
 
+    const fallbackDemo = DEMO_PROJECTS.find((p) => p.slug === slug)?.demo_url;
+
     // Get ratings
     const { data: ratingSummary } = await admin
       .from('project_rating_summary')
@@ -89,6 +94,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 
     return {
       ...project,
+      demo_url: project.demo_url || fallbackDemo || `/demos/${slug}/index.html`,
       avg_rating: ratingSummary?.avg_rating,
       review_count: ratingSummary?.review_count || 0,
     } as Project;

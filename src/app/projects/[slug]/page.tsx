@@ -67,51 +67,51 @@ export default async function ProjectDetailPage({
   return (
     <>
       <MainHeader />
-      <main className="flex-1 py-10 bg-brand-bg dark:bg-brand-dark-bg transition-colors duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden py-6 sm:py-10 bg-brand-bg dark:bg-brand-dark-bg transition-colors duration-200">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
           {/* Breadcrumbs */}
-          <nav className="flex items-center gap-2 text-xs text-brand-muted dark:text-brand-dark-muted">
-            <Link href="/" className="hover:text-brand-primary dark:hover:text-brand-dark-primary">
+          <nav className="flex items-center gap-2 text-xs text-brand-muted dark:text-brand-dark-muted overflow-x-auto max-w-full pb-1">
+            <Link href="/" className="hover:text-brand-primary dark:hover:text-brand-dark-primary flex-shrink-0">
               الرئيسية
             </Link>
             <span>/</span>
-            <Link href="/projects" className="hover:text-brand-primary dark:hover:text-brand-dark-primary">
+            <Link href="/projects" className="hover:text-brand-primary dark:hover:text-brand-dark-primary flex-shrink-0">
               المشاريع
             </Link>
             <span>/</span>
-            <span className="text-brand-text dark:text-brand-dark-text font-bold truncate max-w-xs">
+            <span className="text-brand-text dark:text-brand-dark-text font-bold truncate max-w-[200px] sm:max-w-xs">
               {project.title}
             </span>
           </nav>
 
           {/* Project Header Hero */}
-          <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-6 sm:p-10 shadow-sm space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-2.5">
+          <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-8 md:p-10 shadow-sm space-y-5 sm:space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
                 {project.badge && (
                   <span
-                    className="px-3 py-1 rounded-xl text-white text-xs font-extrabold shadow-sm"
+                    className="px-2.5 py-1 rounded-xl text-white text-xs font-extrabold shadow-sm"
                     style={{ backgroundColor: project.accent_color || '#5B2C6F' }}
                   >
                     {project.badge}
                   </span>
                 )}
                 {project.category && (
-                  <span className="px-3 py-1 rounded-xl bg-brand-subtle dark:bg-brand-dark-border text-brand-primary dark:text-brand-dark-primary text-xs font-bold">
+                  <span className="px-2.5 py-1 rounded-xl bg-brand-subtle dark:bg-brand-dark-border text-brand-primary dark:text-brand-dark-primary text-xs font-bold">
                     {project.category.name}
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>جاهز للتنفيذ والتخصيص</span>
                 </span>
               </div>
 
               {/* Live Preview Direct Pill */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <Link
                   href={previewHref}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-600 hover:text-white transition-all text-xs font-bold shadow-xs"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-600 hover:text-white transition-all text-xs font-bold shadow-xs"
                   title="استعراض الموقع في استوديو المعاينة التفاعلي"
                 >
                   <Globe className="w-4 h-4" />
@@ -120,20 +120,20 @@ export default async function ProjectDetailPage({
               </div>
             </div>
 
-            <div className="space-y-3">
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-brand-text dark:text-brand-dark-text leading-tight">
+            <div className="space-y-2 sm:space-y-3">
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-brand-text dark:text-brand-dark-text leading-tight break-words">
                 {project.title}
               </h1>
-              <p className="text-sm sm:text-base text-brand-muted dark:text-brand-dark-muted max-w-4xl leading-relaxed">
+              <p className="text-xs sm:text-sm md:text-base text-brand-muted dark:text-brand-dark-muted max-w-4xl leading-relaxed">
                 {project.short_description}
               </p>
             </div>
 
             {/* Quick Hero Action Buttons */}
-            <div className="pt-2 flex flex-wrap items-center gap-3">
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full">
               <Link
                 href={previewHref}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-brand-primary text-white font-bold text-xs sm:text-sm hover:bg-brand-primaryHover shadow-md transition-all active:scale-[0.98]"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl sm:rounded-2xl bg-brand-primary text-white font-bold text-xs sm:text-sm hover:bg-brand-primaryHover shadow-md transition-all active:scale-[0.98]"
               >
                 <Globe className="w-4 h-4 text-emerald-300" />
                 <span>تجربة ومعاينة الموقع لايف</span>
@@ -143,7 +143,7 @@ export default async function ProjectDetailPage({
                 href={`/start-project?project=${project.id}`}
                 variant="accent"
                 showIcon={false}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-900/20 active:scale-[0.98]"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl sm:rounded-2xl text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-900/20 active:scale-[0.98]"
               >
                 <MessagesSquare className="w-4 h-4" />
                 <span>ناقش السعر واطلب موقعك الآن</span>
@@ -153,11 +153,11 @@ export default async function ProjectDetailPage({
                 href={directDemoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-4 py-3 rounded-2xl bg-slate-100 dark:bg-brand-dark-border text-slate-700 dark:text-brand-dark-text hover:bg-slate-200 dark:hover:bg-brand-dark-border/80 text-xs font-bold transition-all"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-brand-dark-border text-slate-700 dark:text-brand-dark-text hover:bg-slate-200 dark:hover:bg-brand-dark-border/80 text-xs font-bold transition-all"
                 title="فتح رابط الموقع المباشر في تبويب مستقل"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span>الرابط المباشر</span>
+                <span>الرابط المباشر للموقع</span>
               </a>
             </div>
           </div>
@@ -191,24 +191,24 @@ export default async function ProjectDetailPage({
 
               {/* Section 1: Features & Functions */}
               {project.features && project.features.length > 0 && (
-                <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-6 sm:p-8 space-y-5 shadow-sm">
+                <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 shadow-sm">
                   <div>
                     <span className="text-[11px] font-bold uppercase tracking-wider text-brand-primary dark:text-brand-dark-primary">
                       القيمة والميزات
                     </span>
-                    <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-brand-dark-text mt-1">
+                    <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-brand-text dark:text-brand-dark-text mt-1">
                       أبرز ما يقدمه هذا الموقع لنشاطك التجاري
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                     {project.features.map((feat, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-3 p-4 rounded-2xl bg-brand-bg dark:bg-brand-dark-bg border border-brand-border dark:border-brand-dark-border text-right transition-colors"
+                        className="flex items-start gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-brand-bg dark:bg-brand-dark-bg border border-brand-border dark:border-brand-dark-border text-right transition-colors"
                       >
-                        <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <Check className="w-4 h-4" />
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </div>
                         <div>
                           <p className="text-xs sm:text-sm font-bold text-brand-text dark:text-brand-dark-text leading-relaxed">
@@ -222,17 +222,17 @@ export default async function ProjectDetailPage({
               )}
 
               {/* Section 2: What's Included in Implementation */}
-              <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-6 sm:p-8 space-y-5 shadow-sm">
+              <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 shadow-sm">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                     نطاق العمل والتسليم
                   </span>
-                  <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-brand-dark-text mt-1">
+                  <h2 className="text-base sm:text-lg md:text-xl font-extrabold text-brand-text dark:text-brand-dark-text mt-1">
                     ماذا يشمل طلب تنفيذ هذا النموذج؟
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {[
                     {
                       title: 'تخصيص الهوية والبراند بالكامل',
@@ -261,7 +261,7 @@ export default async function ProjectDetailPage({
                   ].map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-4 rounded-2xl bg-slate-50 dark:bg-brand-dark-bg border border-slate-200/80 dark:border-brand-dark-border space-y-1.5"
+                      className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-brand-dark-bg border border-slate-200/80 dark:border-brand-dark-border space-y-1"
                     >
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 text-brand-primary dark:text-brand-dark-primary flex-shrink-0" />
@@ -278,7 +278,7 @@ export default async function ProjectDetailPage({
               </div>
 
               {/* Section 3: Detailed Description & Technology */}
-              <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 shadow-sm">
                 <div>
                   <h2 className="text-base sm:text-lg font-bold text-brand-text dark:text-brand-dark-text mb-2">
                     تفاصيل تقنية ونطاق التطوير
@@ -320,7 +320,7 @@ export default async function ProjectDetailPage({
             {/* Sticky Sidebar CTA */}
             <div className="lg:col-span-4 space-y-6">
               <div
-                className="sticky top-24 bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-6 sm:p-8 shadow-sm space-y-6 transition-colors"
+                className="sticky top-24 bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 shadow-sm space-y-5 sm:space-y-6 transition-colors"
                 style={{
                   borderTopColor: project.accent_color || '#FF6B00',
                   borderTopWidth: '4px',

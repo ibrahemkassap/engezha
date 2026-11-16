@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
@@ -11,6 +11,14 @@ const cairo = Cairo({
   variable: '--font-arabic',
   display: 'swap',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -61,7 +69,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={cairo.variable} suppressHydrationWarning>
-      <body className="min-h-screen flex flex-col bg-brand-bg dark:bg-brand-dark-bg text-brand-text dark:text-brand-dark-text font-arabic antialiased selection:bg-brand-subtle selection:text-brand-primary dark:selection:bg-brand-dark-surface dark:selection:text-brand-dark-primary transition-colors duration-200">
+      <body className="min-h-screen w-full max-w-full overflow-x-hidden relative flex flex-col bg-brand-bg dark:bg-brand-dark-bg text-brand-text dark:text-brand-dark-text font-arabic antialiased selection:bg-brand-subtle selection:text-brand-primary dark:selection:bg-brand-dark-surface dark:selection:text-brand-dark-primary transition-colors duration-200">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
           <AuthProvider>
             <ProjectTransitionProvider>
