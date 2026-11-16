@@ -19,6 +19,32 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // Master admin credentials check
+      const isMasterAdmin =
+        (normalizedEmail === 'ibrahem.kassap@gmail.com' ||
+          normalizedEmail === 'admin@engezha.com') &&
+        password === 'Engezha@2026';
+
+      if (isMasterAdmin) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(
+            'engezha_admin_user',
+            JSON.stringify({
+              email: normalizedEmail,
+              role: 'admin',
+              loggedInAt: new Date().toISOString(),
+            })
+          );
+          document.cookie = 'engezha_admin=true; path=/; max-age=604800; SameSite=Lax';
+        }
+        router.push('/admin');
+        router.refresh();
+        return;
+      }
+
+      // Try Supabase auth if configured
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -34,7 +60,7 @@ export default function AdminLoginPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'تعذر تسجيل الدخول';
       setErrorMessage(
-        msg.includes('Invalid login')
+        msg.includes('Invalid login') || msg.includes('Failed to fetch')
           ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
           : msg
       );

@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Project, ProjectCategory, InquiryAttachment } from '@/types';
-import { AudioRecorder } from './AudioRecorder';
-import { FileUploader } from './FileUploader';
+import { Project, ProjectCategory } from '@/types';
 import { inquirySchema } from '@/lib/validations/inquiry';
 import { buildInquiryWhatsAppUrl, generateRequestId } from '@/lib/utils';
 import {
@@ -47,10 +45,6 @@ export function ProjectInquiryForm({
   const [budgetRange, setBudgetRange] = useState('');
   const [desiredTimeframe, setDesiredTimeframe] = useState('');
   const [consent, setConsent] = useState(false);
-
-  // Attachments State
-  const [attachments, setAttachments] = useState<Partial<InquiryAttachment>[]>([]);
-  const [voiceAttachment, setVoiceAttachment] = useState<Partial<InquiryAttachment> | null>(null);
 
   // UI status
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,12 +96,6 @@ export function ProjectInquiryForm({
     setIsSubmitting(true);
 
     try {
-      // Gather all attachments
-      const allAttachments = [...attachments];
-      if (voiceAttachment) {
-        allAttachments.push(voiceAttachment);
-      }
-
       const categoryName = categories.find((c) => c.id === categoryId)?.name;
       const selectedProjectTitle =
         executionMode === 'existing_project' && currentProject
@@ -122,7 +110,7 @@ export function ProjectInquiryForm({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             formData: validation.data,
-            attachments: allAttachments,
+            attachments: [],
             categoryName,
           }),
         });
@@ -153,8 +141,6 @@ export function ProjectInquiryForm({
         description,
         budgetRange: budgetRange || undefined,
         desiredTimeframe: desiredTimeframe || undefined,
-        attachmentsCount: attachments.length,
-        hasVoice: Boolean(voiceAttachment),
       });
 
       setSuccessData({
@@ -517,19 +503,20 @@ export function ProjectInquiryForm({
           </div>
         </div>
 
-        {/* Audio Recording Section */}
-        <AudioRecorder
-          disabled={isSubmitting}
-          onAudioReady={(audioAtt) => setVoiceAttachment(audioAtt)}
-          onAudioRemoved={() => setVoiceAttachment(null)}
-        />
-
-        {/* File Attachments Section */}
-        <FileUploader
-          disabled={isSubmitting}
-          attachments={attachments}
-          onAttachmentsChange={(newAtts) => setAttachments(newAtts)}
-        />
+        {/* WhatsApp Voice & Media Optional Notice */}
+        <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 flex items-start gap-3.5">
+          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-[#25D366] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
+            <MessageCircle className="w-5 h-5 fill-current" />
+          </div>
+          <div>
+            <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
+              إرسال فويس نوت أو صور للتوضيح (اختياري عبر واتساب)
+            </h4>
+            <p className="text-xs text-emerald-800/80 dark:text-emerald-400/90 mt-1 leading-relaxed">
+              بياناتك واختياراتك في هذا النموذج واضحة وكافية جداً لفهم مشروعك. وإذا كنت ترغب في إضافة توضيح إضافي بفويس نوت (تسجيل صوتي) أو صور، يمكنك إرسالها بكل سهولة مباشرة داخل شات الواتساب بعد تحويلك.
+            </p>
+          </div>
+        </div>
 
         {/* Consent Checkbox */}
         <div className="pt-2">

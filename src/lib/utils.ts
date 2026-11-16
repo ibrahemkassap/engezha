@@ -103,11 +103,7 @@ export function buildInquiryWhatsAppUrl(params: InquiryWhatsAppParams): string {
     `📝 *تفاصيل ومتطلبات الفكرة:*`,
     params.description,
     ``,
-    `📎 *المرفقات:* ${
-      (params.attachmentsCount || 0) > 0 || params.hasVoice
-        ? `${params.attachmentsCount || 0} ملف(ات)${params.hasVoice ? ' + تسجيل صوتي 🎙️' : ''}`
-        : 'لا يوجد'
-    }`,
+    `🎙️ *ملاحظة توضيحية:* (سأقوم بإرسال تسجيل صوتي أو صور توضيحية هنا في الشات إذا تطلب الأمر)`,
     `────────────────────`,
     `🌐 *مرسل عبر:* منصة أنجزها (engezha.vercel.app)`
   );

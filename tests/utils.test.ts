@@ -42,7 +42,7 @@ describe('Utility Functions', () => {
     expect(decoded).toContain('تصميم وتنفيذ مخصص من الصفر');
     expect(decoded).toContain('مواقع الشركات والخدمات');
     expect(decoded).toContain('نظام حجوزات فندقية متكامل');
-    expect(decoded).toContain('2 ملف(ات) + تسجيل صوتي 🎙️');
+    expect(decoded).toContain('ملاحظة توضيحية');
     expect(decoded).toContain('منصة أنجزها');
   });
 });
