@@ -6,7 +6,7 @@ import { ProjectLaunchButton } from '@/components/transitions/ProjectLaunchButto
 
 export function MainHeader() {
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-brand-dark-surface/95 backdrop-blur-md border-b border-brand-border dark:border-brand-dark-border transition-colors duration-200">
+    <header className="sticky top-0 z-50 w-full bg-white dark:bg-brand-dark-surface border-b border-brand-border dark:border-brand-dark-border transition-colors duration-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-8">
