@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateRequestId, formatBytes } from '@/lib/utils';
+import { generateRequestId, formatBytes, buildInquiryWhatsAppUrl } from '@/lib/utils';
 import { DEMO_PROJECTS, INITIAL_CATEGORIES } from '@/lib/catalog-config';
 
 describe('Utility Functions', () => {
@@ -16,6 +16,34 @@ describe('Utility Functions', () => {
     expect(formatBytes(0)).toBe('0 بايت');
     expect(formatBytes(1024)).toBe('1 كيلوبايت');
     expect(formatBytes(1024 * 1024 * 5)).toBe('5 ميجابايت');
+  });
+
+  it('builds a structured WhatsApp URL with client tracking code and all project details', () => {
+    const url = buildInquiryWhatsAppUrl({
+      requestId: 'ENG-2026-AB12',
+      fullName: 'أحمد محمود',
+      phone: '01017358087',
+      email: 'ahmed@example.com',
+      executionMode: 'custom_project',
+      categoryName: 'مواقع الشركات والخدمات',
+      description: 'نظام حجوزات فندقية متكامل مع دفع إلكتروني',
+      budgetRange: '15,000 - 25,000 ج.م',
+      desiredTimeframe: 'خلال أسبوعين',
+      attachmentsCount: 2,
+      hasVoice: true,
+    });
+
+    expect(url).toContain('https://wa.me/201017358087?text=');
+    const decoded = decodeURIComponent(url);
+    expect(decoded).toContain('ENG-2026-AB12');
+    expect(decoded).toContain('أحمد محمود');
+    expect(decoded).toContain('01017358087');
+    expect(decoded).toContain('ahmed@example.com');
+    expect(decoded).toContain('تصميم وتنفيذ مخصص من الصفر');
+    expect(decoded).toContain('مواقع الشركات والخدمات');
+    expect(decoded).toContain('نظام حجوزات فندقية متكامل');
+    expect(decoded).toContain('2 ملف(ات) + تسجيل صوتي 🎙️');
+    expect(decoded).toContain('منصة أنجزها');
   });
 });
 

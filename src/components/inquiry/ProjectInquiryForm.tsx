@@ -7,14 +7,16 @@ import { Project, ProjectCategory, InquiryAttachment } from '@/types';
 import { AudioRecorder } from './AudioRecorder';
 import { FileUploader } from './FileUploader';
 import { inquirySchema } from '@/lib/validations/inquiry';
+import { buildInquiryWhatsAppUrl, generateRequestId } from '@/lib/utils';
 import {
-  Send,
   AlertCircle,
   CheckCircle2,
   Copy,
   Check,
   Layers,
   Compass,
+  MessageCircle,
+  ExternalLink,
 } from 'lucide-react';
 
 interface ProjectInquiryFormProps {
@@ -56,6 +58,7 @@ export function ProjectInquiryForm({
   const [successData, setSuccessData] = useState<{
     requestId: string;
     message: string;
+    whatsappUrl: string;
   } | null>(null);
   const [copiedId, setCopiedId] = useState(false);
 
@@ -106,27 +109,69 @@ export function ProjectInquiryForm({
       }
 
       const categoryName = categories.find((c) => c.id === categoryId)?.name;
+      const selectedProjectTitle =
+        executionMode === 'existing_project' && currentProject
+          ? currentProject.title
+          : undefined;
 
-      const res = await fetch('/api/inquiries', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          formData: validation.data,
-          attachments: allAttachments,
-          categoryName,
-        }),
-      });
+      let finalRequestId = '';
 
-      const data = await res.json();
+      try {
+        const res = await fetch('/api/inquiries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            formData: validation.data,
+            attachments: allAttachments,
+            categoryName,
+          }),
+        });
 
-      if (!res.ok) {
-        throw new Error(data.error || 'تعذر إرسال الطلب، يرجى المحاولة مرة أخرى.');
+        const data = await res.json();
+
+        if (res.ok && data.requestId) {
+          finalRequestId = data.requestId;
+        }
+      } catch (networkErr) {
+        console.warn('API call fallback for offline/client mode:', networkErr);
       }
 
-      setSuccessData({
-        requestId: data.requestId,
-        message: data.message,
+      // If backend did not supply requestId, generate a valid client tracking code
+      if (!finalRequestId) {
+        finalRequestId = generateRequestId();
+      }
+
+      // Build structured WhatsApp URL with client selections and dedicated tracking code
+      const whatsappUrl = buildInquiryWhatsAppUrl({
+        requestId: finalRequestId,
+        fullName,
+        phone,
+        email,
+        executionMode,
+        selectedProjectTitle,
+        categoryName,
+        description,
+        budgetRange: budgetRange || undefined,
+        desiredTimeframe: desiredTimeframe || undefined,
+        attachmentsCount: attachments.length,
+        hasVoice: Boolean(voiceAttachment),
       });
+
+      setSuccessData({
+        requestId: finalRequestId,
+        message: 'تم تسجيل تفاصيل طلبك بنجاح! جاري توجيهك الآن إلى شات واتساب للمتابعة المباشرة مع فريق العمل...',
+        whatsappUrl,
+      });
+
+      // Automatically redirect client to WhatsApp chat on 01017358087
+      if (typeof window !== 'undefined') {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          window.location.href = whatsappUrl;
+        } else {
+          window.open(whatsappUrl, '_blank');
+        }
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'حدث خطأ في الاتصال بالخادم';
       setErrorMessage(msg);
@@ -144,11 +189,11 @@ export function ProjectInquiryForm({
         </div>
 
         <span className="inline-block text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 mb-3">
-          تم استلام طلبك بنجاح
+          تم استلام وتسجيل طلبك بنجاح
         </span>
 
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-text dark:text-brand-dark-text mb-4">
-          شكرًا لثقتك في انجزها
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-text dark:text-brand-dark-text mb-3">
+          شكرًا لثقتك في أنجزها
         </h2>
 
         <p className="text-sm sm:text-base text-brand-muted dark:text-brand-dark-muted leading-relaxed mb-6">
@@ -156,19 +201,22 @@ export function ProjectInquiryForm({
         </p>
 
         {/* Request ID Display */}
-        <div className="bg-brand-bg dark:bg-brand-dark-bg rounded-2xl border border-brand-border dark:border-brand-dark-border p-5 max-w-md mx-auto mb-8">
+        <div className="bg-brand-bg dark:bg-brand-dark-bg rounded-2xl border border-brand-border dark:border-brand-dark-border p-5 max-w-md mx-auto mb-6">
           <p className="text-xs text-brand-muted dark:text-brand-dark-muted mb-1 font-semibold">
-            رقم الطلب المرجعي الخاص بك:
+            كود المتابعة المخصص لطلبك:
           </p>
           <div className="flex items-center justify-center gap-3">
-            <span className="text-xl sm:text-2xl font-mono font-extrabold text-brand-primary dark:text-brand-dark-primary tracking-wider" dir="ltr">
+            <span
+              className="text-xl sm:text-2xl font-mono font-extrabold text-brand-primary dark:text-brand-dark-primary tracking-wider"
+              dir="ltr"
+            >
               {successData.requestId}
             </span>
             <button
               type="button"
               onClick={() => handleCopyId(successData.requestId)}
               className="p-2 rounded-lg bg-white dark:bg-brand-dark-surface border border-brand-border dark:border-brand-dark-border text-slate-600 dark:text-brand-dark-text hover:text-brand-primary dark:hover:text-brand-dark-primary shadow-xs transition-colors"
-              title="نسخ رقم الطلب"
+              title="نسخ كود الطلب"
             >
               {copiedId ? (
                 <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -177,6 +225,23 @@ export function ProjectInquiryForm({
               )}
             </button>
           </div>
+        </div>
+
+        {/* WhatsApp Direct Action Button */}
+        <div className="p-5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 mb-8 text-center space-y-3">
+          <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-300">
+            إذا لم يفتح الواتساب معك تلقائياً، اضغط على الزر أدناه لبدء المحادثة فوراً:
+          </p>
+          <a
+            href={successData.whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2.5 w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-base font-bold shadow-md shadow-emerald-900/20 active:scale-[0.98] transition-all"
+          >
+            <MessageCircle className="w-5 h-5 fill-current" />
+            <span>فتح شات واتساب الآن (01017358087)</span>
+            <ExternalLink className="w-4 h-4 mr-0.5 opacity-80" />
+          </a>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -488,21 +553,24 @@ export function ProjectInquiryForm({
         </div>
 
         {/* Submit Button */}
-        <div className="pt-4">
+        <div className="pt-4 space-y-2">
           <button
             type="submit"
             disabled={isSubmitting || !consent}
-            className="w-full py-4 px-6 rounded-2xl bg-brand-action hover:bg-brand-actionHover dark:bg-brand-dark-action dark:hover:bg-[#E05E00] text-white text-base font-bold disabled:opacity-50 transition-all shadow-md shadow-orange-900/20 flex items-center justify-center gap-2"
+            className="w-full py-4 px-6 rounded-2xl bg-brand-action hover:bg-brand-actionHover dark:bg-brand-dark-action dark:hover:bg-[#E05E00] text-white text-base font-bold disabled:opacity-50 transition-all shadow-md shadow-orange-900/20 flex items-center justify-center gap-2 group active:scale-[0.99]"
           >
             {isSubmitting ? (
-              <span>جاري حفظ الطلب وإرساله...</span>
+              <span>جاري تسجيل الطلب وتجهيز محادثة واتساب...</span>
             ) : (
               <>
-                <span>إرسال طلب المشروع</span>
-                <Send className="w-4 h-4 mr-1" />
+                <span>إرسال طلب المشروع والمتابعة عبر واتساب</span>
+                <MessageCircle className="w-5 h-5 mr-1 text-white fill-current group-hover:scale-110 transition-transform" />
               </>
             )}
           </button>
+          <p className="text-[11px] text-center text-brand-muted dark:text-brand-dark-muted">
+            سيتم نقلك مباشرة إلى شات واتساب الخاص بنا (<span className="font-mono font-semibold" dir="ltr">01017358087</span>) مع كود مخصص وتفاصيل طلبك لمناقشة السعر والبدء فوراً.
+          </p>
         </div>
       </form>
     </div>
