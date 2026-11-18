@@ -3,6 +3,7 @@ import { MainFooter } from '@/components/layout/MainFooter';
 import { HeroSection } from '@/components/home/HeroSection';
 import { CategoryGrid } from '@/components/home/CategoryGrid';
 import { FeaturedProjects } from '@/components/home/FeaturedProjects';
+import { DevelopersMarketplaceBanner } from '@/components/home/DevelopersMarketplaceBanner';
 import { HowItWorksSection } from '@/components/home/HowItWorksSection';
 import { CustomProjectCta } from '@/components/home/CustomProjectCta';
 import { getCategories, getPublishedProjects } from '@/lib/data';
@@ -18,10 +19,11 @@ export default async function HomePage() {
   return (
     <>
       <MainHeader />
-      <main className="flex-1">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden">
         <HeroSection />
         <CategoryGrid categories={categories} />
         <FeaturedProjects projects={projects} />
+        <DevelopersMarketplaceBanner />
         <HowItWorksSection />
         <CustomProjectCta />
       </main>

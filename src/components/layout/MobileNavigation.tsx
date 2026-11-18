@@ -15,6 +15,7 @@ import {
   Mail,
   ShieldCheck,
   PhoneCall,
+  Code2,
 } from 'lucide-react';
 import { useProjectTransition } from '@/components/transitions/ProjectTransitionContext';
 import { BrandLogo } from './BrandLogo';
@@ -77,6 +78,13 @@ export function MobileNavigation() {
       description: 'خطوات التنفيذ من الفكرة للتسليم',
       href: '/how-it-works',
       icon: HelpCircle,
+      isAction: false,
+    },
+    {
+      title: 'اعرض مشروعك للبيع 💼',
+      description: 'للمبرمجين: حول كودك غير المباع لأرباح',
+      href: '/sell-project',
+      icon: Code2,
       isAction: false,
     },
     {

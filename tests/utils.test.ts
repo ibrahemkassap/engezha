@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { generateRequestId, formatBytes, buildInquiryWhatsAppUrl } from '@/lib/utils';
+import {
+  generateRequestId,
+  generateDeveloperSubmissionId,
+  formatBytes,
+  buildInquiryWhatsAppUrl,
+  buildDeveloperSubmissionWhatsAppUrl,
+} from '@/lib/utils';
 import { DEMO_PROJECTS, INITIAL_CATEGORIES } from '@/lib/catalog-config';
 
 describe('Utility Functions', () => {
@@ -10,6 +16,15 @@ describe('Utility Functions', () => {
     expect(id1).toMatch(/^ENG-2026-[A-Z0-9]{4}$/);
     expect(id2).toMatch(/^ENG-2026-[A-Z0-9]{4}$/);
     expect(id1).not.toBe(id2);
+  });
+
+  it('generates unique developer submission IDs adhering to DEV-2026-XXXX format', () => {
+    const devId1 = generateDeveloperSubmissionId();
+    const devId2 = generateDeveloperSubmissionId();
+
+    expect(devId1).toMatch(/^DEV-2026-[A-Z0-9]{4}$/);
+    expect(devId2).toMatch(/^DEV-2026-[A-Z0-9]{4}$/);
+    expect(devId1).not.toBe(devId2);
   });
 
   it('formats byte sizes into readable Arabic units', () => {
@@ -44,6 +59,33 @@ describe('Utility Functions', () => {
     expect(decoded).toContain('نظام حجوزات فندقية متكامل');
     expect(decoded).toContain('ملاحظة توضيحية');
     expect(decoded).toContain('منصة أنجزها');
+  });
+
+  it('builds a structured developer submission WhatsApp URL with tracking code and monetization options', () => {
+    const devUrl = buildDeveloperSubmissionWhatsAppUrl({
+      submissionId: 'DEV-2026-XY99',
+      developerName: 'إبراهيم كساب',
+      phone: '01017358087',
+      email: 'dev@example.com',
+      portfolioUrl: 'https://github.com/developer',
+      projectTitle: 'نظام محاسبة سحابي ومخازن',
+      projectCategory: 'أنظمة سحابية ولوحات تحكم',
+      techStack: ['Next.js', 'PostgreSQL', 'Tailwind CSS'],
+      readinessStatus: 'مكتمل بنسبة 100% وجاهز للتشغيل',
+      demoUrl: 'https://pos-demo.vercel.app',
+      projectSummary: 'نظام نقاط بيع وطباعة فواتير مع دعم الباركود وتقارير أرباح',
+      sellingModel: 'exclusive_buyout',
+      expectedPrice: '25,000 ج.م',
+    });
+
+    expect(devUrl).toContain('https://wa.me/201017358087?text=');
+    const decoded = decodeURIComponent(devUrl);
+    expect(decoded).toContain('DEV-2026-XY99');
+    expect(decoded).toContain('إبراهيم كساب');
+    expect(decoded).toContain('نظام محاسبة سحابي ومخازن');
+    expect(decoded).toContain('بيع حصري كامل للكود المصدري');
+    expect(decoded).toContain('25,000 ج.م');
+    expect(decoded).toContain('حفظ حقوق الملكية الفكرية NDA');
   });
 });
 

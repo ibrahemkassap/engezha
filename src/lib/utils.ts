@@ -19,6 +19,19 @@ export function generateRequestId(): string {
 }
 
 /**
+ * Generate a unique developer project submission reference ID:
+ * Format: DEV-2026-XXXX (4 random alphanumeric characters)
+ */
+export function generateDeveloperSubmissionId(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let randomPart = '';
+  for (let i = 0; i < 4; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `DEV-2026-${randomPart}`;
+}
+
+/**
  * Format date in Arabic locale
  */
 export function formatArabicDate(dateString: string): string {
@@ -106,6 +119,98 @@ export function buildInquiryWhatsAppUrl(params: InquiryWhatsAppParams): string {
     `🎙️ *ملاحظة توضيحية:* (سأقوم بإرسال تسجيل صوتي أو صور توضيحية هنا في الشات إذا تطلب الأمر)`,
     `────────────────────`,
     `🌐 *مرسل عبر:* منصة أنجزها (engezha.vercel.app)`
+  );
+
+  const message = lines.join('\n');
+  return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
+}
+
+export interface DeveloperProjectWhatsAppParams {
+  submissionId: string;
+  developerName: string;
+  phone: string;
+  email: string;
+  portfolioUrl?: string;
+  projectTitle: string;
+  projectCategory: string;
+  techStack: string[];
+  readinessStatus: string;
+  demoUrl?: string;
+  repoOrDriveUrl?: string;
+  projectSummary: string;
+  sellingModel: 'exclusive_buyout' | 'licensing' | 'partnership' | 'undecided';
+  expectedPrice?: string;
+  notes?: string;
+}
+
+/**
+ * Builds an organized WhatsApp message URL for developers offering projects for sale
+ * Target WhatsApp phone: 01017358087 (International format: 201017358087)
+ */
+export function buildDeveloperSubmissionWhatsAppUrl(params: DeveloperProjectWhatsAppParams): string {
+  const WHATSAPP_PHONE = '201017358087';
+
+  const modelLabels: Record<DeveloperProjectWhatsAppParams['sellingModel'], string> = {
+    exclusive_buyout: 'بيع حصري كامل للكود المصدري (Exclusive Buyout)',
+    licensing: 'بيع تراخيص استخدام متكررة وتخصيص (Licensing & White-Label)',
+    partnership: 'شراكة تطوير وصيانة دورية (Partnership)',
+    undecided: 'مناقشة مفتوحة مع فريق أنجزها لاختيار الأنسب',
+  };
+
+  const lines = [
+    `*مرحباً فريق أنجزها للمطورين 💻🚀*`,
+    `أنا مبرمج ولدي مشروع جاهز غير مباع أرغب في نشره وتسويقه عبر منصتكم للعملاء:`,
+    ``,
+    `🔖 *كود المطور والمشروع:* \`${params.submissionId}\``,
+    `────────────────────`,
+    `👨‍💻 *اسم المبرمج/الفريق:* ${params.developerName}`,
+    `📱 *رقم الواتساب:* ${params.phone}`,
+    `✉️ *البريد الإلكتروني:* ${params.email}`,
+  ];
+
+  if (params.portfolioUrl) {
+    lines.push(`🌐 *معرض الأعمال / GitHub:* ${params.portfolioUrl}`);
+  }
+
+  lines.push(
+    ``,
+    `📦 *بيانات المشروع:*`,
+    `• *اسم المشروع:* ${params.projectTitle}`,
+    `• *تصنيف العمل:* ${params.projectCategory}`,
+    `• *التقنيات المستخدمة:* ${params.techStack.join(', ') || 'غير محدد'}`,
+    `• *جاهزية الكود:* ${params.readinessStatus}`
+  );
+
+  if (params.demoUrl) {
+    lines.push(`🔗 *رابط المعاينة الحية:* ${params.demoUrl}`);
+  }
+
+  if (params.repoOrDriveUrl) {
+    lines.push(`📁 *رابط الملفات / المستودع:* ${params.repoOrDriveUrl}`);
+  }
+
+  lines.push(
+    ``,
+    `💡 *أبرز ميزات وقيمة المشروع:*`,
+    params.projectSummary,
+    ``,
+    `💰 *نموذج البيع والتسعير المفضل:*`,
+    `• *النموذج:* ${modelLabels[params.sellingModel] || params.sellingModel}`
+  );
+
+  if (params.expectedPrice) {
+    lines.push(`• *السعر التقديري المتوقع:* ${params.expectedPrice}`);
+  }
+
+  if (params.notes) {
+    lines.push(``, `📌 *ملاحظات وشروط خاصة:*`, params.notes);
+  }
+
+  lines.push(
+    ``,
+    `🛡️ *حماية الكود:* جميع البيانات خاضعة لاتفاقية سرية المعلومات وحفظ حقوق الملكية الفكرية NDA.`,
+    `────────────────────`,
+    `🌐 *مرسل عبر قسم المطورين:* منصة أنجزها (engezha.vercel.app/sell-project)`
   );
 
   const message = lines.join('\n');

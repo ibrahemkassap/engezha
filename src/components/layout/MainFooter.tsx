@@ -53,6 +53,11 @@ export function MainFooter() {
                   طلب مشروع جديد
                 </Link>
               </li>
+              <li>
+                <Link href="/sell-project" className="hover:text-orange-400 font-semibold text-purple-300 transition-colors">
+                  اعرض مشروعك للبيع 💼
+                </Link>
+              </li>
             </ul>
           </div>
 

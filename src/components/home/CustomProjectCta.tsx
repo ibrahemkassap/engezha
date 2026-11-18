@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Mic, FileUp } from 'lucide-react';
+import { ArrowLeft, MessageSquare, ShieldCheck } from 'lucide-react';
 
 export function CustomProjectCta() {
   return (
@@ -19,18 +19,18 @@ export function CustomProjectCta() {
         </h2>
 
         <p className="text-base sm:text-lg text-purple-200 max-w-2xl mx-auto mt-4 leading-relaxed">
-          احكيلنا عن فكرتك، وابعت صورك أو تسجيلك الصوتي، ونبدأ من احتياجك أنت بدل ما نكرر تصميم موجود.
+          احكيلنا عن فكرتك الخاصة، ونبدأ من احتياجك أنت ونبني لك موقعك أو تطبيقك من الصفر بأعلى معايير السرعة والأمان.
         </p>
 
         {/* Feature Highlights */}
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-300">
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10">
-            <Mic className="w-4 h-4 text-brand-accent" />
-            <span>تسجيل صوتي مباشر</span>
+            <MessageSquare className="w-4 h-4 text-brand-accent" />
+            <span>مناقشة واستشارة فورية عبر واتساب</span>
           </div>
           <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10">
-            <FileUp className="w-4 h-4 text-purple-300" />
-            <span>رفع ملفات وصور ومستندات</span>
+            <ShieldCheck className="w-4 h-4 text-purple-300" />
+            <span>تنفيذ برمجي آمن وتسليم سريع</span>
           </div>
         </div>
 

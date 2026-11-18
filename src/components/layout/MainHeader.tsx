@@ -3,6 +3,7 @@ import { BrandLogo } from './BrandLogo';
 import { MobileNavigation } from './MobileNavigation';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { ProjectLaunchButton } from '@/components/transitions/ProjectLaunchButton';
+import { Code2 } from 'lucide-react';
 
 export function MainHeader() {
   return (
@@ -13,7 +14,7 @@ export function MainHeader() {
           <BrandLogo />
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-brand-text dark:text-brand-dark-text">
+          <nav className="hidden md:flex items-center gap-5 lg:gap-6 text-sm font-semibold text-brand-text dark:text-brand-dark-text">
             <Link
               href="/"
               className="hover:text-brand-primary dark:hover:text-brand-dark-primary transition-colors py-1"
@@ -45,6 +46,13 @@ export function MainHeader() {
             >
               ابدأ مشروعك
             </ProjectLaunchButton>
+            <Link
+              href="/sell-project"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-brand-primary dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 hover:bg-brand-primary hover:text-white dark:hover:bg-purple-600 dark:hover:text-white transition-all text-xs font-bold"
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              <span>اعرض مشروع للبيع</span>
+            </Link>
           </nav>
         </div>
 
