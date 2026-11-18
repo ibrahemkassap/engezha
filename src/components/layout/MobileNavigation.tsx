@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Home,
   Layers,
-  LayoutGrid,
   HelpCircle,
   Rocket,
   ChevronLeft,
@@ -16,6 +15,8 @@ import {
   ShieldCheck,
   PhoneCall,
   Code2,
+  BookOpen,
+  Sparkles,
 } from 'lucide-react';
 import { useProjectTransition } from '@/components/transitions/ProjectTransitionContext';
 import { BrandLogo } from './BrandLogo';
@@ -67,10 +68,10 @@ export function MobileNavigation() {
       isAction: false,
     },
     {
-      title: 'تصفح حسب النوع',
-      description: 'مواقع، متاجر، وتطبيقات',
-      href: '/#categories',
-      icon: LayoutGrid,
+      title: 'خدمات الإنتاج البرمجي',
+      description: 'تطوير مواقع، متاجر، وتطبيقات ذكية',
+      href: '/services',
+      icon: Sparkles,
       isAction: false,
     },
     {
@@ -78,6 +79,13 @@ export function MobileNavigation() {
       description: 'خطوات التنفيذ من الفكرة للتسليم',
       href: '/how-it-works',
       icon: HelpCircle,
+      isAction: false,
+    },
+    {
+      title: 'مركز المعرفة والمدونة',
+      description: 'مقالات هندسية وأدلة تقنية لأعمالك',
+      href: '/blog',
+      icon: BookOpen,
       isAction: false,
     },
     {

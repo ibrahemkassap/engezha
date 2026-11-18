@@ -1,6 +1,6 @@
 import { getAdminClient } from './supabase/admin';
-import { INITIAL_CATEGORIES, DEMO_PROJECTS } from './catalog-config';
-import { Project, ProjectCategory } from '@/types';
+import { INITIAL_CATEGORIES, DEMO_PROJECTS, CORE_SERVICES, INITIAL_BLOG_ARTICLES } from './catalog-config';
+import { Project, ProjectCategory, ServiceItem, BlogArticle } from '@/types';
 
 export async function getCategories(): Promise<ProjectCategory[]> {
   try {
@@ -121,4 +121,21 @@ export async function getProjectReviews(projectId: string) {
     return [];
   }
 }
+
+export async function getServices(): Promise<ServiceItem[]> {
+  return CORE_SERVICES;
+}
+
+export async function getServiceBySlug(slug: string): Promise<ServiceItem | null> {
+  return CORE_SERVICES.find((s) => s.slug === slug) || null;
+}
+
+export async function getBlogArticles(): Promise<BlogArticle[]> {
+  return INITIAL_BLOG_ARTICLES;
+}
+
+export async function getBlogArticleBySlug(slug: string): Promise<BlogArticle | null> {
+  return INITIAL_BLOG_ARTICLES.find((a) => a.slug === slug) || null;
+}
+
 

@@ -6,6 +6,7 @@ import { MainFooter } from '@/components/layout/MainFooter';
 import { ProjectGallery } from '@/components/projects/ProjectGallery';
 import { TechnologyTag } from '@/components/projects/TechnologyTag';
 import { ReviewList } from '@/components/reviews/ReviewList';
+import { ProjectCard } from '@/components/projects/ProjectCard';
 import { ProjectLaunchButton } from '@/components/transitions/ProjectLaunchButton';
 import { getProjectBySlug, getProjectReviews, getPublishedProjects } from '@/lib/data';
 import {
@@ -19,6 +20,10 @@ import {
   Tag,
   ShieldCheck,
   Check,
+  Clock,
+  HelpCircle,
+  Users2,
+  Sliders,
 } from 'lucide-react';
 
 interface ProjectDetailPageProps {
@@ -30,14 +35,27 @@ export async function generateMetadata({
 }: ProjectDetailPageProps): Promise<Metadata> {
   const project = await getProjectBySlug(params.slug);
   if (!project) {
-    return { title: 'المشروع غير موجود' };
+    return { title: 'المشروع غير موجود | أنجزها' };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://engezha.vercel.app';
+
   return {
-    title: `${project.title} | أنجزها لتنفيذ المشاريع الرقمية`,
+    title: `${project.title} | أنجزها لإنتاج المشاريع الرقمية`,
     description: project.short_description,
+    alternates: {
+      canonical: `${baseUrl}/projects/${project.slug}`,
+    },
     openGraph: {
       title: `${project.title} | أنجزها`,
+      description: project.short_description,
+      images: [project.cover_image],
+      url: `${baseUrl}/projects/${project.slug}`,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: project.title,
       description: project.short_description,
       images: [project.cover_image],
     },
@@ -60,12 +78,77 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  const allProjects = await getPublishedProjects();
+  const relatedProjects = allProjects
+    .filter((p) => p.id !== project.id && p.category_id === project.category_id)
+    .slice(0, 3);
+
   const reviews = await getProjectReviews(project.id);
   const previewHref = `/preview/${project.slug}`;
   const directDemoUrl = project.demo_url || `https://${project.slug}.vercel.app`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://engezha.vercel.app';
+  const pageUrl = `${baseUrl}/projects/${project.slug}`;
+
+  // Structured Data (JSON-LD)
+  const softwareSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: project.title,
+    description: project.short_description,
+    applicationCategory: 'BusinessApplication',
+    operatingSystem: 'All modern web browsers, iOS, Android, Windows, macOS',
+    image: `${baseUrl}${project.cover_image}`,
+    url: pageUrl,
+    author: {
+      '@type': 'Organization',
+      name: 'انجزها | ENGEZHA',
+      url: baseUrl,
+    },
+    aggregateRating: project.avg_rating
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: project.avg_rating,
+          reviewCount: project.review_count || 1,
+        }
+      : undefined,
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'الرئيسية',
+        item: baseUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'المشاريع',
+        item: `${baseUrl}/projects`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: project.title,
+        item: pageUrl,
+      },
+    ],
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
       <MainHeader />
       <main className="flex-1 w-full max-w-full overflow-x-hidden py-6 sm:py-10 bg-brand-bg dark:bg-brand-dark-bg transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
@@ -103,7 +186,11 @@ export default async function ProjectDetailPage({
                 )}
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>جاهز للتنفيذ والتخصيص</span>
+                  <span>
+                    {project.production_status === 'ready_to_launch'
+                      ? 'جاهز للإطلاق الفوري'
+                      : 'قابل للتخصيص والتطوير'}
+                  </span>
                 </span>
               </div>
 
@@ -115,7 +202,7 @@ export default async function ProjectDetailPage({
                   title="استعراض الموقع في استوديو المعاينة التفاعلي"
                 >
                   <Globe className="w-4 h-4" />
-                  <span>معاينة حية للموقع ↗</span>
+                  <span>معاينة حية للمشروع ↗</span>
                 </Link>
               </div>
             </div>
@@ -189,7 +276,43 @@ export default async function ProjectDetailPage({
                 />
               </div>
 
-              {/* Section 1: Features & Functions */}
+              {/* Section 1: Target Audience & Problem Solved */}
+              <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-5 shadow-sm">
+                {project.problem_solved && (
+                  <div className="space-y-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                      التحدي المحلول
+                    </span>
+                    <h2 className="text-base sm:text-lg font-extrabold text-brand-text dark:text-brand-dark-text">
+                      كيف يساعد هذا المشروع نشاطك التجاري؟
+                    </h2>
+                    <p className="text-xs sm:text-sm text-brand-muted dark:text-brand-dark-muted leading-relaxed">
+                      {project.problem_solved}
+                    </p>
+                  </div>
+                )}
+
+                {project.target_audience && project.target_audience.length > 0 && (
+                  <div className="pt-4 border-t border-brand-border/60 dark:border-brand-dark-border space-y-2.5">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      الجمهور المستهدف
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {project.target_audience.map((aud, aIdx) => (
+                        <span
+                          key={aIdx}
+                          className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
+                        >
+                          <Users2 className="w-3.5 h-3.5 text-brand-primary dark:text-purple-400" />
+                          <span>{aud}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Features & Functions */}
               {project.features && project.features.length > 0 && (
                 <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 shadow-sm">
                   <div>
@@ -221,7 +344,7 @@ export default async function ProjectDetailPage({
                 </div>
               )}
 
-              {/* Section 2: What's Included in Implementation */}
+              {/* Section 3: Delivery Scope (What you receive) */}
               <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 shadow-sm">
                 <div>
                   <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
@@ -233,69 +356,69 @@ export default async function ProjectDetailPage({
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  {[
-                    {
-                      title: 'تخصيص الهوية والبراند بالكامل',
-                      desc: 'تطبيق شعارك، ألوانك الخاصة، نصوصك، وصور منتجاتك وخدماتك بدقة فائقة.',
-                    },
-                    {
-                      title: 'استضافة سحابية سريعة ودومين خاص',
-                      desc: 'حجز وربط اسم النطاق وشهادة الأمان SSL وحماية شاملة من التوقف.',
-                    },
-                    {
-                      title: 'ربط مباشر بالواتساب وبوابات الدفع',
-                      desc: 'استقبال طلبات الشراء والحجوزات فورياً على رقم هاتفك مع بوابات دفع معتمدة.',
-                    },
-                    {
-                      title: 'لوحة تحكم سهلة وتدريب كامل',
-                      desc: 'إمكانية تعديل الأسعار، إضافة منتجات ومقالات، وشرح فيديو مبسط لك ولفريقك.',
-                    },
-                    {
-                      title: 'سرعة قياسية وتجاوب مع الهواتف',
-                      desc: 'تصميم متوافق بنسبة 100% مع كافة هواتف آيفون وأندرويد وأجهزة الكمبيوتر.',
-                    },
-                    {
-                      title: 'دعم فني وضمان بعد التسليم',
-                      desc: 'متابعة تشغيلية وصيانة دورية لضمان عمل موقعك بأعلى كفاءة واستقرار.',
-                    },
-                  ].map((item, idx) => (
+                  {(project.delivery_scope || [
+                    'تخصيص الهوية والشعار والألوان 100%',
+                    'استضافة سحابية سريعة ودومين خاص مشمول',
+                    'ربط مباشر بالواتساب وبوابات الدفع الإلكتروني',
+                    'لوحة تحكم إدارية سهلة وتدريب كامل لفريقك',
+                  ]).map((item, idx) => (
                     <div
                       key={idx}
                       className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-brand-dark-bg border border-slate-200/80 dark:border-brand-dark-border space-y-1"
                     >
                       <div className="flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-brand-primary dark:text-brand-dark-primary flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                         <h3 className="text-xs sm:text-sm font-bold text-brand-text dark:text-brand-dark-text">
-                          {item.title}
+                          {item}
                         </h3>
                       </div>
-                      <p className="text-[11px] sm:text-xs text-brand-muted dark:text-brand-dark-muted leading-relaxed">
-                        {item.desc}
-                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Section 3: Detailed Description & Technology */}
+              {/* Section 4: Customization Options & Roadmap */}
+              {project.customization_options && project.customization_options.length > 0 && (
+                <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-brand-accent dark:text-brand-dark-action" />
+                    <h2 className="text-base sm:text-lg font-bold text-brand-text dark:text-brand-dark-text">
+                      خيارات التخصيص والإضافات المتاحة
+                    </h2>
+                  </div>
+                  <ul className="space-y-2">
+                    {project.customization_options.map((opt, oIdx) => (
+                      <li key={oIdx} className="flex items-start gap-2.5 text-xs sm:text-sm text-brand-muted dark:text-brand-dark-muted">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary dark:bg-purple-400 mt-2 flex-shrink-0" />
+                        <span>{opt}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Section 5: Technical Capabilities & Tech Specs */}
               <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6 shadow-sm">
                 <div>
                   <h2 className="text-base sm:text-lg font-bold text-brand-text dark:text-brand-dark-text mb-2">
-                    تفاصيل تقنية ونطاق التطوير
+                    تفاصيل معمارية النظام والمواصفات التقنية
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-700 dark:text-brand-dark-muted leading-relaxed whitespace-pre-line">
                     {project.detailed_description}
                   </p>
                 </div>
 
-                {project.problem_solved && (
-                  <div className="p-4 rounded-2xl bg-brand-bg dark:bg-brand-dark-bg border border-brand-border dark:border-brand-dark-border">
-                    <h3 className="text-xs font-bold text-brand-text dark:text-brand-dark-text mb-1 uppercase tracking-wider">
-                      التحدي المحلول
-                    </h3>
-                    <p className="text-xs text-brand-muted dark:text-brand-dark-muted leading-relaxed">
-                      {project.problem_solved}
-                    </p>
+                {project.tech_specs && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    {project.tech_specs.map((spec, sIdx) => (
+                      <div
+                        key={sIdx}
+                        className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs"
+                      >
+                        <span className="text-slate-400 font-medium">{spec.label}:</span>
+                        <span className="font-bold text-brand-text dark:text-white">{spec.value}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
 
@@ -311,7 +434,31 @@ export default async function ProjectDetailPage({
                 </div>
               </div>
 
-              {/* Reviews only rendered if real reviews exist */}
+              {/* Section 6: Project FAQ */}
+              {project.faq_items && project.faq_items.length > 0 && (
+                <div className="bg-white dark:bg-brand-dark-surface rounded-2xl sm:rounded-3xl border border-brand-border dark:border-brand-dark-border p-4 sm:p-6 md:p-8 space-y-4 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-brand-primary dark:text-purple-400" />
+                    <h2 className="text-base sm:text-lg font-bold text-brand-text dark:text-brand-dark-text">
+                      أسئلة شائعة حول هذا المشروع
+                    </h2>
+                  </div>
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {project.faq_items.map((faq, fIdx) => (
+                      <div key={fIdx} className="py-3.5 space-y-1.5">
+                        <h3 className="text-xs sm:text-sm font-bold text-brand-text dark:text-white">
+                          {faq.question}
+                        </h3>
+                        <p className="text-xs text-brand-muted dark:text-brand-dark-muted leading-relaxed">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews */}
               {reviews && reviews.length > 0 && (
                 <ReviewList projectId={project.id} initialReviews={reviews} />
               )}
@@ -335,12 +482,19 @@ export default async function ProjectDetailPage({
                     <span>{project.badge || 'جاهز للتنفيذ'}</span>
                   </div>
                   <h3 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-brand-dark-text mt-1">
-                    طلب تسعير وتنفيذ الموقع
+                    طلب تسعير وتنفيذ النموذج
                   </h3>
                   <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-2 leading-relaxed">
-                    احصل على عرض سعر مخصص وخطة عمل واضحة لتنفيذ هذا النموذج بهويتك وبكافة الميزات التي تطلبها.
+                    احصل على استشارة فنية مجانية، وعرض سعر مخصص لتهيئة هذا النموذج بهوية شركتك ومتطلباتك الخاصة.
                   </p>
                 </div>
+
+                {project.estimated_timeline && (
+                  <div className="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex items-center gap-2.5 text-xs text-purple-900 dark:text-purple-300 font-bold">
+                    <Clock className="w-4 h-4 text-brand-accent flex-shrink-0" />
+                    <span>المدة المتوقعة: {project.estimated_timeline}</span>
+                  </div>
+                )}
 
                 {/* Conversion Actions */}
                 <div className="space-y-3 pt-1">
@@ -382,10 +536,10 @@ export default async function ProjectDetailPage({
                 <div className="p-4 rounded-2xl bg-brand-subtle/50 dark:bg-brand-dark-border/40 border border-brand-border/60 dark:border-brand-dark-border space-y-2 text-xs">
                   <div className="flex items-center gap-2 font-bold text-brand-primary dark:text-brand-dark-primary">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                    <span>ضمان الجودة والتسليم</span>
+                    <span>ضمان الجودة والتسليم المعتمد</span>
                   </div>
                   <p className="text-[11px] text-brand-muted dark:text-brand-dark-muted leading-relaxed">
-                    مناقشة استشارية مجانية بالكامل ومباشرة على الواتساب + كود نظيف وتصميم عصري متجاوب 100%.
+                    اتفاقية عدم إفصاح NDA + كود نظيف وتصميم عصري متجاوب 100% مع ضمان صيانة تشغيلية.
                   </p>
                 </div>
 
@@ -413,6 +567,35 @@ export default async function ProjectDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Related Projects Section */}
+          {relatedProjects.length > 0 && (
+            <div className="space-y-6 pt-10 border-t border-brand-border/60 dark:border-brand-dark-border">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-brand-text dark:text-brand-dark-text">
+                    مشاريع مشابهة قد تهمك
+                  </h2>
+                  <p className="text-xs sm:text-sm text-brand-muted dark:text-brand-dark-muted mt-1">
+                    استكشف نماذج أخرى من نفس التصنيف تلائم فكرتك.
+                  </p>
+                </div>
+                <Link
+                  href="/projects"
+                  className="text-xs font-bold text-brand-primary dark:text-purple-300 hover:text-brand-accent transition-colors flex items-center gap-1"
+                >
+                  <span>كافة النماذج ({allProjects.length})</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedProjects.map((rel) => (
+                  <ProjectCard key={rel.id} project={rel} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </main>
       <MainFooter />

@@ -14,7 +14,7 @@ export function MainHeader() {
           <BrandLogo />
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-5 lg:gap-6 text-sm font-semibold text-brand-text dark:text-brand-dark-text">
+          <nav className="hidden md:flex items-center gap-4 lg:gap-5 text-sm font-semibold text-brand-text dark:text-brand-dark-text">
             <Link
               href="/"
               className="hover:text-brand-primary dark:hover:text-brand-dark-primary transition-colors py-1"
@@ -28,10 +28,10 @@ export function MainHeader() {
               استكشف المشاريع
             </Link>
             <Link
-              href="/#categories"
+              href="/services"
               className="hover:text-brand-primary dark:hover:text-brand-dark-primary transition-colors py-1"
             >
-              تصفح حسب النوع
+              الخدمات
             </Link>
             <Link
               href="/how-it-works"
@@ -39,13 +39,12 @@ export function MainHeader() {
             >
               كيف نعمل؟
             </Link>
-            <ProjectLaunchButton
-              href="/start-project"
-              showIcon={false}
-              className="border-none bg-transparent hover:bg-transparent shadow-none p-0 text-sm font-semibold text-brand-text dark:text-brand-dark-text hover:text-brand-primary dark:hover:text-brand-dark-primary transition-colors py-1"
+            <Link
+              href="/blog"
+              className="hover:text-brand-primary dark:hover:text-brand-dark-primary transition-colors py-1"
             >
-              ابدأ مشروعك
-            </ProjectLaunchButton>
+              المدونة
+            </Link>
             <Link
               href="/sell-project"
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-brand-primary dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 hover:bg-brand-primary hover:text-white dark:hover:bg-purple-600 dark:hover:text-white transition-all text-xs font-bold"

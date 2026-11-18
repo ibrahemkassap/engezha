@@ -8,6 +8,13 @@ export type ProjectCategory = {
   created_at: string;
 };
 
+export type ProductionStatus =
+  | 'ready_to_launch'          // جاهز للإطلاق الفوري
+  | 'customizable'              // قابل للتخصيص المباشر
+  | 'requires_customization'   // يتطلب تخصيصاً وربطاً
+  | 'under_development'        // قيد التطوير الهندسي
+  | 'demo_available';          // متاح للمعاينة والتجربة
+
 export type Project = {
   id: string;
   title: string;
@@ -31,6 +38,14 @@ export type Project = {
   badge?: string;
   accent_color?: string;
   demo_url?: string;
+  production_status?: ProductionStatus;
+  industry?: string;
+  target_audience?: string[];
+  delivery_scope?: string[];
+  customization_options?: string[];
+  estimated_timeline?: string;
+  faq_items?: { question: string; answer: string }[];
+  tech_specs?: { label: string; value: string }[];
 };
 
 export type UserProfile = {
@@ -94,7 +109,7 @@ export type ProjectInquiry = {
   project_title?: string; // Optional working title
   description: string;
   budget_range?: string;
-  budget_currency?: 'EGP' | 'USD';
+  budget_currency?: 'EGP' | 'USD' | 'SAR';
   desired_timeframe?: string;
   additional_features?: string;
   status: InquiryStatus;
@@ -120,4 +135,40 @@ export type BudgetRange = {
   label: string;
   egp: string;
   usd: string;
+};
+
+export type ServiceItem = {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string;
+  short_description: string;
+  detailed_description: string;
+  icon_name: string;
+  hero_badge: string;
+  benefits: string[];
+  deliverables: string[];
+  suitable_for: string[];
+  technologies: string[];
+  timeline_estimate: string;
+  faq: { question: string; answer: string }[];
+};
+
+export type BlogArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: {
+    name: string;
+    role: string;
+    avatar: string;
+  };
+  category: string;
+  tags: string[];
+  read_time: string;
+  published_at: string;
+  updated_at: string;
+  cover_image: string;
 };

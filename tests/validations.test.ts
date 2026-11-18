@@ -59,6 +59,45 @@ describe('Inquiry Validation Schema', () => {
     const result = inquirySchema.safeParse(invalidData);
     expect(result.success).toBe(false);
   });
+
+  it('validates a complete 7-step wizard submission with currencies and priority', () => {
+    const fullWizardData = {
+      fullName: 'م. إبراهيم كساب',
+      phone: '+201017358087',
+      email: 'ibrahem@engezha.com',
+      executionMode: 'custom_project',
+      projectType: 'متجر إلكتروني متكامل',
+      businessName: 'براند أزياء مودرن',
+      industry: 'تجارة وتجزئة',
+      country: 'مصر',
+      preferredLanguage: 'عربي وإنجليزي',
+      description: 'أريد بناء متجر إلكتروني متكامل ببوابات دفع وسلة سريعة.',
+      budgetRange: '25,000 - 40,000 ج.م',
+      budgetCurrency: 'EGP',
+      desiredTimeframe: 'خلال 2 إلى 4 أسابيع',
+      priorityLevel: 'urgent',
+      preferredContactMethod: 'whatsapp',
+      consent: true,
+    };
+
+    const result = inquirySchema.safeParse(fullWizardData);
+    expect(result.success).toBe(true);
+  });
+
+  it('validates currency choices including SAR and USD', () => {
+    const baseData = {
+      fullName: 'سالم الكعبي',
+      phone: '+966501234567',
+      email: 'salem@example.sa',
+      executionMode: 'custom_project',
+      description: 'منصة استشارات وحجوزات طبية متقدمة.',
+      consent: true,
+    };
+
+    expect(inquirySchema.safeParse({ ...baseData, budgetCurrency: 'SAR' }).success).toBe(true);
+    expect(inquirySchema.safeParse({ ...baseData, budgetCurrency: 'USD' }).success).toBe(true);
+    expect(inquirySchema.safeParse({ ...baseData, budgetCurrency: 'EUR' }).success).toBe(false);
+  });
 });
 
 describe('Review Validation Schema', () => {

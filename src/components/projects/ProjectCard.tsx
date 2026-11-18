@@ -16,6 +16,44 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const accentColor = project.accent_color || '#5B2C6F';
   const previewHref = `/preview/${project.slug}`;
 
+  // Production Status Label & Color
+  const getStatusBadge = () => {
+    switch (project.production_status) {
+      case 'ready_to_launch':
+        return {
+          label: 'جاهز للإطلاق الفوري',
+          color: 'text-emerald-600 dark:text-emerald-400',
+          dot: 'bg-emerald-500',
+        };
+      case 'customizable':
+        return {
+          label: 'قابل للتخصيص المباشر',
+          color: 'text-sky-600 dark:text-sky-400',
+          dot: 'bg-sky-500',
+        };
+      case 'under_development':
+        return {
+          label: 'قيد التطوير الهندسي',
+          color: 'text-purple-600 dark:text-purple-400',
+          dot: 'bg-purple-500',
+        };
+      case 'requires_customization':
+        return {
+          label: 'يتطلب تخصيصاً وربطاً',
+          color: 'text-amber-600 dark:text-amber-400',
+          dot: 'bg-amber-500',
+        };
+      default:
+        return {
+          label: 'متاح للمعاينة والتجربة',
+          color: 'text-emerald-600 dark:text-emerald-400',
+          dot: 'bg-emerald-500',
+        };
+    }
+  };
+
+  const statusBadge = getStatusBadge();
+
   return (
     <article
       className="group relative bg-white dark:bg-brand-dark-surface rounded-2xl border border-brand-border dark:border-brand-dark-border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
@@ -92,9 +130,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div>
           {/* Status availability row */}
           <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>جاهز للتنفيذ والتخصيص</span>
+            <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${statusBadge.color}`}>
+              <span className={`w-2 h-2 rounded-full ${statusBadge.dot} animate-pulse`} />
+              <span>{statusBadge.label}</span>
             </span>
             <span className="text-[11px] font-mono text-brand-muted dark:text-brand-dark-muted">
               {project.technology_tags[0] || 'Web Solution'}

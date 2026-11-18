@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Project, ProjectCategory } from '@/types';
 import { inquirySchema } from '@/lib/validations/inquiry';
 import { buildInquiryWhatsAppUrl, generateRequestId } from '@/lib/utils';
@@ -14,7 +13,17 @@ import {
   Layers,
   Compass,
   MessageCircle,
-  ExternalLink,
+  Building2,
+  FileText,
+  DollarSign,
+  Paperclip,
+  PhoneCall,
+  ClipboardCheck,
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+  UploadCloud,
+  X,
 } from 'lucide-react';
 
 interface ProjectInquiryFormProps {
@@ -32,23 +41,58 @@ export function ProjectInquiryForm({
   initialProjectId,
   initialCategoryId,
 }: ProjectInquiryFormProps) {
-  // Form State
+  // Wizard Step State (1 to 7)
+  const [currentStep, setCurrentStep] = useState(1);
+
+  // Step 1: Project Type
   const [executionMode, setExecutionMode] = useState<'existing_project' | 'custom_project'>(
     initialProjectId ? 'existing_project' : initialMode
   );
   const [selectedProjectId, setSelectedProjectId] = useState<string>(initialProjectId || '');
   const [categoryId, setCategoryId] = useState<string>(initialCategoryId || '');
+  const [projectType, setProjectType] = useState<string>('موقع شركات');
+
+  const handleSelectProject = (id: string) => {
+    setSelectedProjectId(id);
+    const found = projects.find((p) => p.id === id);
+    if (found?.category_id) {
+      setCategoryId(found.category_id);
+    }
+  };
+
+  // Step 2: Business Information
+  const [businessName, setBusinessName] = useState('');
+  const [industry, setIndustry] = useState('تجارة وتجزئة');
+  const [country, setCountry] = useState('مصر');
+  const [preferredLanguage, setPreferredLanguage] = useState('عربي وإنجليزي');
+
+  // Step 3: Requirements
+  const [projectTitle, setProjectTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [referenceWebsites, setReferenceWebsites] = useState('');
+  const [desiredIntegrations, setDesiredIntegrations] = useState('');
+
+  // Step 4: Budget & Timeline
+  const [budgetRange, setBudgetRange] = useState('10,000 - 25,000 ج.م');
+  const [budgetCurrency, setBudgetCurrency] = useState<'EGP' | 'SAR' | 'USD'>('EGP');
+  const [desiredTimeframe, setDesiredTimeframe] = useState('خلال 2 إلى 4 أسابيع');
+  const [priorityLevel, setPriorityLevel] = useState<'normal' | 'urgent' | 'flexible'>('normal');
+
+  // Step 5: Attachments
+  const [attachmentsList, setAttachmentsList] = useState<{ name: string; size: number }[]>([]);
+
+  // Step 6: Contact Channels
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [description, setDescription] = useState('');
-  const [budgetRange, setBudgetRange] = useState('');
-  const [desiredTimeframe, setDesiredTimeframe] = useState('');
+  const [preferredContactMethod, setPreferredContactMethod] = useState<'whatsapp' | 'phone' | 'email'>('whatsapp');
   const [consent, setConsent] = useState(false);
 
   // UI status
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<{
     requestId: string;
     message: string;
@@ -56,7 +100,6 @@ export function ProjectInquiryForm({
   } | null>(null);
   const [copiedId, setCopiedId] = useState(false);
 
-  // Find currently selected project
   const currentProject = projects.find((p) => p.id === selectedProjectId);
 
   const handleCopyId = (id: string) => {
@@ -65,31 +108,104 @@ export function ProjectInquiryForm({
     setTimeout(() => setCopiedId(false), 2000);
   };
 
+  // Step Validation before progressing
+  const validateAndNext = () => {
+    setStepError(null);
+
+    if (currentStep === 1) {
+      if (executionMode === 'existing_project' && !selectedProjectId) {
+        setStepError('يرجى اختيار نموذج من قائمة المشاريع المعروضة.');
+        return;
+      }
+    }
+
+    if (currentStep === 3) {
+      if (!description.trim() || description.trim().length < 10) {
+        setStepError('يرجى كتابة نبذة توضيحية عن فكرتك أو متطلباتك (10 أحرف على الأقل).');
+        return;
+      }
+    }
+
+    if (currentStep === 6) {
+      if (!fullName.trim() || fullName.trim().length < 3) {
+        setStepError('يرجى إدخال اسمك الكريم (3 أحرف على الأقل).');
+        return;
+      }
+      if (!phone.trim() || phone.trim().length < 7) {
+        setStepError('يرجى إدخال رقم هاتف أو واتساب صحيح للمتابعة.');
+        return;
+      }
+      if (!email.trim() || !email.includes('@')) {
+        setStepError('يرجى إدخال بريد إلكتروني صالح.');
+        return;
+      }
+    }
+
+    setCurrentStep((prev) => Math.min(prev + 1, 7));
+  };
+
+  const handlePrev = () => {
+    setStepError(null);
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleFileSimulate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 20 * 1024 * 1024) {
+        setStepError('حجم الملف يتجاوز الحد الأقصى المسموح (20 ميجابايت).');
+        return;
+      }
+      setAttachmentsList((prev) => [...prev, { name: file.name, size: file.size }]);
+    }
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setAttachmentsList((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+
+    if (!consent) {
+      setErrorMessage('يجب الموافقة على شروط الخدمة وسياسة الخصوصية للمتابعة.');
+      return;
+    }
 
     const formDataToValidate = {
       fullName,
       phone,
       email,
       executionMode,
+      projectType,
+      businessName: businessName || undefined,
+      industry: industry || undefined,
+      country: country || undefined,
+      preferredLanguage: preferredLanguage || undefined,
       categoryId: categoryId || undefined,
       selectedProjectId: executionMode === 'existing_project' ? selectedProjectId : undefined,
       selectedProjectTitle:
         executionMode === 'existing_project' && currentProject
           ? currentProject.title
           : undefined,
+      projectTitle: projectTitle || undefined,
+      targetAudience: targetAudience || undefined,
       description,
+      referenceWebsites: referenceWebsites || undefined,
+      desiredIntegrations: desiredIntegrations || undefined,
       budgetRange: budgetRange || undefined,
+      budgetCurrency,
       desiredTimeframe: desiredTimeframe || undefined,
+      priorityLevel,
+      preferredContactMethod,
       consent,
     };
 
     const validation = inquirySchema.safeParse(formDataToValidate);
 
     if (!validation.success) {
-      setErrorMessage(validation.error.issues[0]?.message || 'بيانات غير مكتملة');
+      setErrorMessage(validation.error.issues[0]?.message || 'بيانات غير مكتملة، يرجى مراجعة الحقول.');
       return;
     }
 
@@ -110,13 +226,16 @@ export function ProjectInquiryForm({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             formData: validation.data,
-            attachments: [],
+            attachments: attachmentsList.map((a) => ({
+              file_name: a.name,
+              file_size: a.size,
+              file_type: 'application/octet-stream',
+            })),
             categoryName,
           }),
         });
 
         const data = await res.json();
-
         if (res.ok && data.requestId) {
           finalRequestId = data.requestId;
         }
@@ -124,12 +243,10 @@ export function ProjectInquiryForm({
         console.warn('API call fallback for offline/client mode:', networkErr);
       }
 
-      // If backend did not supply requestId, generate a valid client tracking code
       if (!finalRequestId) {
         finalRequestId = generateRequestId();
       }
 
-      // Build structured WhatsApp URL with client selections and dedicated tracking code
       const whatsappUrl = buildInquiryWhatsAppUrl({
         requestId: finalRequestId,
         fullName,
@@ -138,18 +255,17 @@ export function ProjectInquiryForm({
         executionMode,
         selectedProjectTitle,
         categoryName,
-        description,
-        budgetRange: budgetRange || undefined,
-        desiredTimeframe: desiredTimeframe || undefined,
+        description: `نوع المشروع: ${projectType} | النشاط: ${industry} | الدولة: ${country}\nالتفاصيل: ${description}`,
+        budgetRange: `${budgetRange} (${budgetCurrency})`,
+        desiredTimeframe,
       });
 
       setSuccessData({
         requestId: finalRequestId,
-        message: 'تم تسجيل تفاصيل طلبك بنجاح! جاري توجيهك الآن إلى شات واتساب للمتابعة المباشرة مع فريق العمل...',
+        message: 'تم تسجيل طلب مشروعك بنجاح في نظام أنجزها! جاري توجيهك لشات واتساب الرسمي لمناقشة التفاصيل وخطة التنفيذ...',
         whatsappUrl,
       });
 
-      // Automatically redirect client to WhatsApp chat on 01017358087
       if (typeof window !== 'undefined') {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
@@ -169,395 +285,821 @@ export function ProjectInquiryForm({
   // Success view
   if (successData) {
     return (
-      <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-sm transition-colors">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto mb-6 shadow-sm">
-          <CheckCircle2 className="w-10 h-10" />
+      <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-8 sm:p-12 text-center max-w-xl mx-auto shadow-2xl space-y-6">
+        <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-md">
+          <CheckCircle2 className="w-9 h-9" />
         </div>
 
-        <span className="inline-block text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 mb-3">
-          تم استلام وتسجيل طلبك بنجاح
-        </span>
-
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-text dark:text-brand-dark-text mb-3">
-          شكرًا لثقتك في أنجزها
-        </h2>
-
-        <p className="text-sm sm:text-base text-brand-muted dark:text-brand-dark-muted leading-relaxed mb-6">
-          {successData.message}
-        </p>
-
-        {/* Request ID Display */}
-        <div className="bg-brand-bg dark:bg-brand-dark-bg rounded-2xl border border-brand-border dark:border-brand-dark-border p-5 max-w-md mx-auto mb-6">
-          <p className="text-xs text-brand-muted dark:text-brand-dark-muted mb-1 font-semibold">
-            كود المتابعة المخصص لطلبك:
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+            تم تسجيل طلب المشروع بنجاح
+          </span>
+          <h2 className="text-2xl font-extrabold text-brand-text dark:text-brand-dark-text">
+            شكراً لك، {fullName}!
+          </h2>
+          <p className="text-sm text-brand-muted dark:text-brand-dark-muted leading-relaxed">
+            {successData.message}
           </p>
+        </div>
+
+        {/* Unique Tracking Reference Code Box */}
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-brand-dark-bg border border-slate-200 dark:border-brand-dark-border space-y-1">
+          <span className="text-xs text-brand-muted dark:text-brand-dark-muted block">
+            كود المتابعة المخصص لطلبك:
+          </span>
           <div className="flex items-center justify-center gap-3">
-            <span
-              className="text-xl sm:text-2xl font-mono font-extrabold text-brand-primary dark:text-brand-dark-primary tracking-wider"
-              dir="ltr"
-            >
+            <span className="font-mono text-xl font-extrabold text-brand-primary dark:text-brand-dark-primary tracking-wider">
               {successData.requestId}
             </span>
             <button
-              type="button"
               onClick={() => handleCopyId(successData.requestId)}
-              className="p-2 rounded-lg bg-white dark:bg-brand-dark-surface border border-brand-border dark:border-brand-dark-border text-slate-600 dark:text-brand-dark-text hover:text-brand-primary dark:hover:text-brand-dark-primary shadow-xs transition-colors"
-              title="نسخ كود الطلب"
+              className="p-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 transition-colors"
+              title="نسخ الكود"
+              type="button"
             >
-              {copiedId ? (
-                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <Copy className="w-4 h-4" />
-              )}
+              {copiedId ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
-        {/* WhatsApp Direct Action Button */}
-        <div className="p-5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 mb-8 text-center space-y-3">
-          <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-300">
-            إذا لم يفتح الواتساب معك تلقائياً، اضغط على الزر أدناه لبدء المحادثة فوراً:
-          </p>
+        {/* Direct WhatsApp Call to Action */}
+        <div className="pt-2 space-y-3">
           <a
             href={successData.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2.5 w-full py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-base font-bold shadow-md shadow-emerald-900/20 active:scale-[0.98] transition-all"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition-all shadow-lg shadow-emerald-900/25 active:scale-[0.98]"
           >
-            <MessageCircle className="w-5 h-5 fill-current" />
-            <span>فتح شات واتساب الآن (01017358087)</span>
-            <ExternalLink className="w-4 h-4 mr-0.5 opacity-80" />
+            <MessageCircle className="w-5 h-5" />
+            <span>الانتقال إلى محادثة واتساب الآن (01017358087)</span>
           </a>
-        </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/projects"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-brand-primary text-white text-sm font-bold hover:bg-brand-primaryHover transition-all"
+            className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-brand-primary dark:text-brand-dark-primary hover:underline"
           >
-            استكشف المزيد من الأعمال
-          </Link>
-          <Link
-            href="/"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-100 dark:bg-brand-dark-border text-slate-700 dark:text-brand-dark-text text-sm font-semibold hover:bg-slate-200 dark:hover:bg-brand-dark-border/80 transition-all"
-          >
-            العودة للرئيسية
+            <span>استعراض باقي مشاريع أنجزها</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-6 sm:p-10 shadow-sm max-w-3xl mx-auto transition-colors">
-      {/* Mode Selection Tabs */}
-      <div className="mb-8">
-        <label className="block text-xs font-bold text-brand-text dark:text-brand-dark-text mb-3 uppercase tracking-wider">
-          طريقة التنفيذ
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => setExecutionMode('existing_project')}
-            className={`p-4 rounded-2xl border text-right transition-all flex items-start gap-3.5 ${
-              executionMode === 'existing_project'
-                ? 'border-brand-primary dark:border-brand-dark-primary bg-brand-subtle/70 dark:bg-brand-dark-border ring-2 ring-brand-primary/20 dark:ring-brand-dark-primary/30'
-                : 'border-brand-border dark:border-brand-dark-border hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-brand-dark-surface'
-            }`}
-          >
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                executionMode === 'existing_project'
-                  ? 'bg-brand-primary dark:bg-brand-dark-primary text-white'
-                  : 'bg-slate-100 dark:bg-brand-dark-border text-slate-500 dark:text-brand-dark-muted'
-              }`}
-            >
-              <Layers className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-brand-text dark:text-brand-dark-text">
-                مشروع مشابه لنموذج موجود
-              </h4>
-              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-0.5 leading-relaxed">
-                اختار عملًا جاهزًا من أعمالنا لنبني لك موقعًا أو تطبيقًا مشابهًا له.
-              </p>
-            </div>
-          </button>
+  const stepsMeta = [
+    { num: 1, title: 'نوع المشروع', icon: Layers },
+    { num: 2, title: 'بيانات النشاط', icon: Building2 },
+    { num: 3, title: 'المتطلبات', icon: FileText },
+    { num: 4, title: 'الميزانية والوقت', icon: DollarSign },
+    { num: 5, title: 'المرفقات', icon: Paperclip },
+    { num: 6, title: 'بيانات التواصل', icon: PhoneCall },
+    { num: 7, title: 'المراجعة والتأكيد', icon: ClipboardCheck },
+  ];
 
-          <button
-            type="button"
-            onClick={() => setExecutionMode('custom_project')}
-            className={`p-4 rounded-2xl border text-right transition-all flex items-start gap-3.5 ${
-              executionMode === 'custom_project'
-                ? 'border-brand-primary dark:border-brand-dark-primary bg-brand-subtle/70 dark:bg-brand-dark-border ring-2 ring-brand-primary/20 dark:ring-brand-dark-primary/30'
-                : 'border-brand-border dark:border-brand-dark-border hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-brand-dark-surface'
-            }`}
-          >
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                executionMode === 'custom_project'
-                  ? 'bg-brand-primary dark:bg-brand-dark-primary text-white'
-                  : 'bg-slate-100 dark:bg-brand-dark-border text-slate-500 dark:text-brand-dark-muted'
-              }`}
-            >
-              <Compass className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-brand-text dark:text-brand-dark-text">
-                تصميم مخصص من الصفر
-              </h4>
-              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-0.5 leading-relaxed">
-                فكرة جديدة لم تنفذ من قبل، أو احتياجات برمجية مصممة خصيصًا لك.
-              </p>
-            </div>
-          </button>
+  return (
+    <div className="bg-white dark:bg-brand-dark-surface rounded-3xl border border-brand-border dark:border-brand-dark-border p-5 sm:p-10 shadow-xl max-w-4xl mx-auto space-y-8 transition-colors">
+      {/* Wizard Step Progress Tracker */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between text-xs font-extrabold text-brand-muted dark:text-brand-dark-muted">
+          <span>الخطوة {currentStep} من 7</span>
+          <span className="text-brand-primary dark:text-purple-300 font-bold">
+            {stepsMeta[currentStep - 1]?.title}
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-l from-purple-600 to-brand-accent transition-all duration-300 rounded-full"
+            style={{ width: `${(currentStep / 7) * 100}%` }}
+          />
+        </div>
+
+        {/* Desktop Step Icons Row */}
+        <div className="hidden sm:grid grid-cols-7 gap-2 pt-2">
+          {stepsMeta.map((s) => {
+            const Icon = s.icon;
+            const isCompleted = currentStep > s.num;
+            const isCurrent = currentStep === s.num;
+            return (
+              <div
+                key={s.num}
+                className={`flex flex-col items-center gap-1.5 text-center ${
+                  isCurrent
+                    ? 'text-brand-primary dark:text-purple-300 font-extrabold'
+                    : isCompleted
+                    ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                    : 'text-slate-400 font-medium'
+                }`}
+              >
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs transition-all ${
+                    isCurrent
+                      ? 'bg-brand-primary text-white shadow-xs scale-105'
+                      : isCompleted
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                </div>
+                <span className="text-[10px] leading-tight line-clamp-1">{s.title}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
+      {/* Step Error Banner */}
+      {stepError && (
+        <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{stepError}</span>
+        </div>
+      )}
+
+      {/* Global Form Submission Error */}
       {errorMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 text-sm flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+        <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
+      {/* Wizard Steps Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* If existing project mode is selected */}
-        {executionMode === 'existing_project' && (
-          <div className="p-4 rounded-2xl bg-brand-bg dark:bg-brand-dark-bg border border-brand-border dark:border-brand-dark-border space-y-3">
-            <div className="flex items-center justify-between">
-              <label htmlFor="selectedProject" className="block text-xs font-bold text-brand-text dark:text-brand-dark-text">
-                المشروع المختار لمناقشة السعر والتنفيذ:
-              </label>
-              {currentProject?.badge && (
-                <span
-                  className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full text-white shadow-xs"
-                  style={{ backgroundColor: currentProject.accent_color || '#5B2C6F' }}
-                >
-                  {currentProject.badge}
-                </span>
-              )}
+        {/* STEP 1: Project Type & Mode */}
+        {currentStep === 1 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                اختر نوع وطريقة تنفيذ مشروعك
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                هل تفضل الانطلاق من نموذج رقمي تم إنجازه واختباره، أم بناء فكرة استثنائية من الصفر؟
+              </p>
             </div>
 
-            {currentProject && (
-              <div className="flex items-center gap-3.5 p-3 rounded-xl bg-white dark:bg-brand-dark-surface border border-brand-border dark:border-brand-dark-border shadow-xs">
-                <div className="relative w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900 border border-brand-border/60">
-                  <Image
-                    src={currentProject.cover_image}
-                    alt={currentProject.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-extrabold text-brand-text dark:text-brand-dark-text truncate">
-                    {currentProject.title}
-                  </h4>
-                  <p className="text-xs text-brand-muted dark:text-brand-dark-muted truncate mt-0.5">
-                    {currentProject.project_type}
+            {/* Execution Mode Radio Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label
+                onClick={() => setExecutionMode('existing_project')}
+                className={`p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                  executionMode === 'existing_project'
+                    ? 'border-brand-primary dark:border-purple-500 bg-purple-50/50 dark:bg-purple-950/20 shadow-xs'
+                    : 'border-brand-border dark:border-brand-dark-border hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="executionMode"
+                  value="existing_project"
+                  checked={executionMode === 'existing_project'}
+                  onChange={() => {}}
+                  className="mt-1"
+                />
+                <div>
+                  <div className="font-extrabold text-sm text-brand-text dark:text-white flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-brand-primary dark:text-purple-400" />
+                    <span>تخصيص نموذج من المعرض</span>
+                  </div>
+                  <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1 leading-relaxed">
+                    إطلاق فوري وسريع (خلال 3 - 5 أيام) بالاعتماد على أحد الـ 12 نموذجاً المنفذة.
                   </p>
                 </div>
+              </label>
+
+              <label
+                onClick={() => setExecutionMode('custom_project')}
+                className={`p-5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                  executionMode === 'custom_project'
+                    ? 'border-brand-accent dark:border-brand-dark-action bg-orange-50/50 dark:bg-orange-950/20 shadow-xs'
+                    : 'border-brand-border dark:border-brand-dark-border hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="executionMode"
+                  value="custom_project"
+                  checked={executionMode === 'custom_project'}
+                  onChange={() => {}}
+                  className="mt-1"
+                />
+                <div>
+                  <div className="font-extrabold text-sm text-brand-text dark:text-white flex items-center gap-1.5">
+                    <Compass className="w-4 h-4 text-brand-accent dark:text-brand-dark-action" />
+                    <span>بناء مخصص بالكامل من الصفر</span>
+                  </div>
+                  <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1 leading-relaxed">
+                    تصميم وبرمجة منصة سحابية فريدة تلائم متطلباتك الخاصة بنسبة 100%.
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* Model Picker if existing_project */}
+            {executionMode === 'existing_project' && (
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-brand-text dark:text-white">
+                  اختر النموذج المرغوب من معرض الأعمال:
+                </label>
+                <select
+                  value={selectedProjectId}
+                  onChange={(e) => handleSelectProject(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs font-bold text-brand-text dark:text-white"
+                >
+                  <option value="">-- اضغط لاختيار المشروع --</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} ({p.project_type})
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
-            <select
-              id="selectedProject"
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-white dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              required
-            >
-              <option value="">-- اضغط للاختيار أو التغيير من القائمة --</option>
-              {projects.map((proj) => (
-                <option key={proj.id} value={proj.id}>
-                  {proj.title} ({proj.project_type})
-                </option>
-              ))}
-            </select>
+            {/* Project Type Chips */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-brand-text dark:text-white">
+                تصنيف المشروع الأساسي:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  'موقع شركات تعريفي',
+                  'متجر إلكتروني متكامل',
+                  'تطبيق موبايل (iOS/Android)',
+                  'نظام كاشير وإدارة POS',
+                  'منظومة فواتير سحابية',
+                  'حلول ذكاء اصطناعي وأتمتة',
+                  'منصة تعليم وحجوزات',
+                  'منصة سحابية مخصصة (SaaS)',
+                ].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setProjectType(t)}
+                    className={`p-2.5 rounded-xl text-xs font-bold transition-all text-center border ${
+                      projectType === t
+                        ? 'border-brand-primary bg-brand-primary text-white shadow-xs'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Category selector */}
-        <div>
-          <label htmlFor="category" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-            نوع أو تصنيف المشروع
-          </label>
-          <select
-            id="category"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          >
-            <option value="" className="dark:bg-brand-dark-surface">-- اختر التصنيف المناسب (اختياري) --</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id} className="dark:bg-brand-dark-surface">
-                {cat.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* STEP 2: Business Information */}
+        {currentStep === 2 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                بيانات النشاط والشركة
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                ساعدنا في فهم قطاع عملك والجمهور المستهدف لتقديم الاقتراحات الهندسية الأنسب.
+              </p>
+            </div>
 
-        {/* Contact info grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="fullName" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-              الاسم الكامل <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="مثال: محمد مصطفى"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text placeholder:text-slate-400 dark:placeholder:text-brand-dark-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              required
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  اسم الشركة أو العلامة التجارية (أو اسم الفكرة)
+                </label>
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="مثال: شركة النور للحلول اللوجستية"
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  مجال ونشاط العمل (Industry)
+                </label>
+                <select
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs font-bold text-brand-text dark:text-white"
+                >
+                  <option value="تجارة وتجزئة">تجارة وتجزئة ومتاجر</option>
+                  <option value="رعاية صحية وطبية">رعاية صحية وعيادات ومستشفيات</option>
+                  <option value="عقارات ومقاولات">عقارات ومقاولات وتطوير عقاري</option>
+                  <option value="طيران وسياحة فاخرة">طيران وسياحة وخدمات كونسيرج</option>
+                  <option value="تعليم وتدريب">تعليم وتدريب واستشارات</option>
+                  <option value="مطاعم وضيافة">مطاعم وكافيهات وضيافة</option>
+                  <option value="تكنولوجيا واتصالات">تكنولوجيا وبرمجيات وذكاء اصطناعي</option>
+                  <option value="أخرى">قطاع آخر</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  الدولة أو السوق المستهدف
+                </label>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs font-bold text-brand-text dark:text-white"
+                >
+                  <option value="مصر">جمهورية مصر العربية</option>
+                  <option value="السعودية">المملكة العربية السعودية</option>
+                  <option value="الإمارات">الإمارات العربية المتحدة</option>
+                  <option value="الكويت">دولة الكويت</option>
+                  <option value="قطر">دولة قطر</option>
+                  <option value="سوق دولي متعدد">سوق دولي ومتعدد البلدان</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  اللغات المطلوبة في المنصة
+                </label>
+                <select
+                  value={preferredLanguage}
+                  onChange={(e) => setPreferredLanguage(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs font-bold text-brand-text dark:text-white"
+                >
+                  <option value="عربي فقط">اللغة العربية فقط</option>
+                  <option value="عربي وإنجليزي">لغتان (عربي + إنجليزي مع RTL/LTR)</option>
+                  <option value="إنجليزي فقط">اللغة الإنجليزية فقط</option>
+                  <option value="متعدد اللغات">أكثر من لغتين</option>
+                </select>
+              </div>
+            </div>
           </div>
+        )}
 
-          <div>
-            <label htmlFor="phone" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-              رقم الهاتف / واتساب <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="+20 100 000 0000"
-              dir="ltr"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text text-right placeholder:text-slate-400 dark:placeholder:text-brand-dark-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              required
-            />
+        {/* STEP 3: Requirements & Description */}
+        {currentStep === 3 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                متطلبات ومواصفات المشروع
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                احكِ لنا بالتفصيل عن أهدافك والميزات الأساسية التي تتطلع لوجودها في النظام.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  عنوان أو اسم تعريفي للمشروع (اختياري)
+                </label>
+                <input
+                  type="text"
+                  value={projectTitle}
+                  onChange={(e) => setProjectTitle(e.target.value)}
+                  placeholder="مثال: تطبيق توصيل شحنات سريع"
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  الجمهور المستهدف للمشروع (اختياري)
+                </label>
+                <input
+                  type="text"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="مثال: أصحاب الشركات الصغيرة، أطباء الأسنان، عملاء التجزئة"
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  شرح الفكرة والمتطلبات الرئيسية *
+                </label>
+                <span className="text-[11px] text-slate-400">
+                  {description.length} / 3000 حرف
+                </span>
+              </div>
+              <textarea
+                rows={5}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="اشرح لنا طبيعة عملك، الشاشات المطلوبة، الوظائف التي تريد أن يقوم بها الموقع، وطريقة تعامل المستخدمين..."
+                className="w-full p-3.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white leading-relaxed focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  مواقع أو تطبيقات ملهمة (روابط للمقارنة)
+                </label>
+                <input
+                  type="text"
+                  value={referenceWebsites}
+                  onChange={(e) => setReferenceWebsites(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  ربط وتكاملات مرغوبة (Integrations)
+                </label>
+                <input
+                  type="text"
+                  value={desiredIntegrations}
+                  onChange={(e) => setDesiredIntegrations(e.target.value)}
+                  placeholder="مثال: بوابة PayMob، شحن Bosta، خرائط Google"
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white"
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div>
-          <label htmlFor="email" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-            البريد الإلكتروني <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isSubmitting}
-            placeholder="name@example.com"
-            dir="ltr"
-            className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text text-right placeholder:text-slate-400 dark:placeholder:text-brand-dark-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            required
-          />
-        </div>
+        {/* STEP 4: Budget & Timeline */}
+        {currentStep === 4 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                الميزانية التقديرية والجدول الزمني
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                تحديد ميزانيتك يساعدنا في اقتراح المعمارية والحلول المناسبة لحجم استثمارك دون مبالغة.
+              </p>
+            </div>
 
-        {/* Project Description */}
-        <div>
-          <label htmlFor="description" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-            اشرح فكرتك واحتياجاتك <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="description"
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={isSubmitting}
-            placeholder="احكيلنا عن هدف المشروع، الميزات الأساسية المطلوبة، وأي روابط أو أفكار ملهمة لديك..."
-            className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text placeholder:text-slate-400 dark:placeholder:text-brand-dark-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary leading-relaxed"
-            required
-          />
-          <p className="text-[11px] text-brand-muted dark:text-brand-dark-muted mt-1">
-            بين 10 إلى 3000 حرف.
-          </p>
-        </div>
+            {/* Currency Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-brand-text dark:text-white block">
+                عملة التقدير المفضلة:
+              </label>
+              <div className="flex items-center gap-2">
+                {(['EGP', 'SAR', 'USD'] as const).map((curr) => (
+                  <button
+                    key={curr}
+                    type="button"
+                    onClick={() => setBudgetCurrency(curr)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                      budgetCurrency === curr
+                        ? 'bg-brand-primary text-white shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    {curr === 'EGP' ? 'الجنيه المصري (EGP)' : curr === 'SAR' ? 'الريال السعودي (SAR)' : 'الدولار الأمريكي (USD)'}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Budget & Timeframe Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="budget" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-              الميزانية التقديرية (اختياري)
-            </label>
-            <input
-              id="budget"
-              type="text"
-              value={budgetRange}
-              onChange={(e) => setBudgetRange(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="مثال: 5,000 - 15,000 ريال / جنيه / دولار"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text placeholder:text-slate-400 dark:placeholder:text-brand-dark-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            />
+            {/* Budget Ranges */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-brand-text dark:text-white block">
+                نطاق الميزانية التقديرية:
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { label: 'بداية واستكشاف', val: budgetCurrency === 'EGP' ? '5,000 - 15,000 ج.م' : budgetCurrency === 'SAR' ? '1,500 - 4,000 ر.س' : '$500 - $1,500' },
+                  { label: 'شركات متوسطة ومتكاملة', val: budgetCurrency === 'EGP' ? '15,000 - 40,000 ج.م' : budgetCurrency === 'SAR' ? '4,000 - 10,000 ر.س' : '$1,500 - $3,500' },
+                  { label: 'أنظمة متقدمة وتطبيقات SaaS', val: budgetCurrency === 'EGP' ? '+40,000 ج.م' : budgetCurrency === 'SAR' ? '+10,000 ر.س' : '+$3,500' },
+                ].map((b, bIdx) => (
+                  <button
+                    key={bIdx}
+                    type="button"
+                    onClick={() => setBudgetRange(b.val)}
+                    className={`p-3.5 rounded-2xl border text-right transition-all ${
+                      budgetRange === b.val
+                        ? 'border-brand-primary bg-purple-50/50 dark:bg-purple-950/30 font-extrabold text-brand-primary dark:text-purple-300'
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <div className="text-[11px] text-slate-400">{b.label}</div>
+                    <div className="text-sm font-bold mt-1">{b.val}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Desired Timeframe */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  المدة الزمنية المفضلة للتسليم
+                </label>
+                <select
+                  value={desiredTimeframe}
+                  onChange={(e) => setDesiredTimeframe(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs font-bold text-brand-text dark:text-white"
+                >
+                  <option value="خلال أسبوع إلى أسبوعين">خلال أسبوع إلى أسبوعين (تسليم سريع)</option>
+                  <option value="خلال 2 إلى 4 أسابيع">خلال 2 إلى 4 أسابيع (المدة القياسية)</option>
+                  <option value="خلال شهر إلى شهرين">خلال شهر إلى شهرين (مشاريع كبرى)</option>
+                  <option value="الجدول مرن بحسب اكتمال الميزات">مرن بحسب مراحل العمل</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  مستوى الأولوية والاستعجال
+                </label>
+                <select
+                  value={priorityLevel}
+                  onChange={(e) => setPriorityLevel(e.target.value as 'normal' | 'urgent' | 'flexible')}
+                  className="w-full p-3 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs font-bold text-brand-text dark:text-white"
+                >
+                  <option value="normal">أولوية عادية (Normal)</option>
+                  <option value="urgent">أولوية عاجلة ومستعجلة (Urgent Delivery)</option>
+                  <option value="flexible">أولوية مرنة (Flexible)</option>
+                </select>
+              </div>
+            </div>
           </div>
+        )}
 
-          <div>
-            <label htmlFor="timeframe" className="block text-xs font-semibold text-brand-text dark:text-brand-dark-text mb-1.5">
-              المدة المستهدفة للتنفيذ (اختياري)
-            </label>
-            <input
-              id="timeframe"
-              type="text"
-              value={desiredTimeframe}
-              onChange={(e) => setDesiredTimeframe(e.target.value)}
-              disabled={isSubmitting}
-              placeholder="مثال: خلال شهر، أسبوعين، عاجل"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-brand-bg dark:bg-brand-dark-surface text-sm text-brand-text dark:text-brand-dark-text placeholder:text-slate-400 dark:placeholder:text-brand-dark-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            />
-          </div>
-        </div>
+        {/* STEP 5: Attachments */}
+        {currentStep === 5 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                إرفاق ملفات ومستندات مرجعية
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                إذا كان لديك شعار، ملف مواصفات PDF، مخططات، أو صور توضيحية، يمكنك إرفاقها هنا (اختياري).
+              </p>
+            </div>
 
-        {/* WhatsApp Voice & Media Optional Notice */}
-        <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/60 flex items-start gap-3.5">
-          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-[#25D366] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
-            <MessageCircle className="w-5 h-5 fill-current" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold text-emerald-900 dark:text-emerald-300">
-              إرسال فويس نوت أو صور للتوضيح (اختياري عبر واتساب)
-            </h4>
-            <p className="text-xs text-emerald-800/80 dark:text-emerald-400/90 mt-1 leading-relaxed">
-              بياناتك واختياراتك في هذا النموذج واضحة وكافية جداً لفهم مشروعك. وإذا كنت ترغب في إضافة توضيح إضافي بفويس نوت (تسجيل صوتي) أو صور، يمكنك إرسالها بكل سهولة مباشرة داخل شات الواتساب بعد تحويلك.
-            </p>
-          </div>
-        </div>
+            <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-3xl p-8 text-center space-y-3 bg-slate-50/50 dark:bg-slate-900/40">
+              <UploadCloud className="w-10 h-10 text-brand-primary dark:text-purple-400 mx-auto" />
+              <div>
+                <p className="text-xs font-bold text-brand-text dark:text-white">
+                  اسحب الملفات هنا أو اضغط لاختيارها من جهازك
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  يدعم صيغ PDF، Word، PNG، JPG حتى 20 ميجابايت للملف
+                </p>
+              </div>
 
-        {/* Consent Checkbox */}
-        <div className="pt-2">
-          <label className="flex items-start gap-3 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              disabled={isSubmitting}
-              className="mt-1 w-4 h-4 rounded text-brand-primary border-brand-border focus:ring-brand-primary"
-              required
-            />
-            <span className="text-xs text-brand-muted dark:text-brand-dark-muted leading-relaxed">
-              أوافق على{' '}
-              <Link href="/privacy" target="_blank" className="text-brand-primary dark:text-brand-dark-primary font-semibold hover:underline">
-                سياسة الخصوصية
-              </Link>{' '}
-              واستخدام بيانات التواصل للتواصل معي بخصوص هذا المشروع.
-            </span>
-          </label>
-        </div>
+              <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold cursor-pointer hover:bg-brand-primaryHover transition-colors shadow-xs">
+                <span>تحديد ملف من الجهاز</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileSimulate}
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                />
+              </label>
+            </div>
 
-        {/* Submit Button */}
-        <div className="pt-4 space-y-2">
-          <button
-            type="submit"
-            disabled={isSubmitting || !consent}
-            className="w-full py-4 px-6 rounded-2xl bg-brand-action hover:bg-brand-actionHover dark:bg-brand-dark-action dark:hover:bg-[#E05E00] text-white text-base font-bold disabled:opacity-50 transition-all shadow-md shadow-orange-900/20 flex items-center justify-center gap-2 group active:scale-[0.99]"
-          >
-            {isSubmitting ? (
-              <span>جاري تسجيل الطلب وتجهيز محادثة واتساب...</span>
-            ) : (
-              <>
-                <span>إرسال طلب المشروع والمتابعة عبر واتساب</span>
-                <MessageCircle className="w-5 h-5 mr-1 text-white fill-current group-hover:scale-110 transition-transform" />
-              </>
+            {/* Uploaded List */}
+            {attachmentsList.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-slate-400 block">
+                  الملفات المرفقة ({attachmentsList.length}):
+                </span>
+                <div className="space-y-2">
+                  {attachmentsList.map((att, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <Paperclip className="w-4 h-4 text-brand-primary dark:text-purple-400 flex-shrink-0" />
+                        <span className="font-bold truncate text-brand-text dark:text-white">
+                          {att.name}
+                        </span>
+                        <span className="text-slate-400 text-[10px]">
+                          ({Math.round(att.size / 1024)} KB)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAttachment(idx)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                        title="حذف الملف"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
-          </button>
-          <p className="text-[11px] text-center text-brand-muted dark:text-brand-dark-muted">
-            سيتم نقلك مباشرة إلى شات واتساب الخاص بنا (<span className="font-mono font-semibold" dir="ltr">01017358087</span>) مع كود مخصص وتفاصيل طلبك لمناقشة السعر والبدء فوراً.
-          </p>
+          </div>
+        )}
+
+        {/* STEP 6: Contact Details */}
+        {currentStep === 6 && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                بيانات التواصل والمتابعة
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                سنتواصل معك عبر هذه البيانات لمناقشة خطة العمل وإرسال مقترح التسعير والجدول الزمني.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  الاسم الكامل أو اسم المسؤول *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="مثال: م. أحمد محمود"
+                  className="w-full p-3.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-text dark:text-white block">
+                    رقم الهاتف / الواتساب *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="01017358087 أو +201017358087"
+                    dir="ltr"
+                    className="w-full p-3.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white text-right"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-brand-text dark:text-white block">
+                    البريد الإلكتروني الرسمي *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@company.com"
+                    dir="ltr"
+                    className="w-full p-3.5 rounded-xl border border-brand-border dark:border-brand-dark-border bg-slate-50 dark:bg-slate-900 text-xs text-brand-text dark:text-white text-right"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-bold text-brand-text dark:text-white block">
+                  قناة التواصل المفضلة لديك:
+                </label>
+                <div className="flex items-center gap-3">
+                  {[
+                    { id: 'whatsapp', label: 'محادثة واتساب مباشرة (الأسرع)', icon: MessageCircle },
+                    { id: 'phone', label: 'اتصال هاتفي', icon: PhoneCall },
+                    { id: 'email', label: 'البريد الإلكتروني', icon: FileText },
+                  ].map((ch) => (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => setPreferredContactMethod(ch.id as 'whatsapp' | 'phone' | 'email')}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                        preferredContactMethod === ch.id
+                          ? 'border-brand-primary bg-purple-50 dark:bg-purple-950/40 text-brand-primary dark:text-purple-300 font-extrabold'
+                          : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      <ch.icon className="w-3.5 h-3.5" />
+                      <span>{ch.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 7: Review & Confirm */}
+        {currentStep === 7 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg sm:text-xl font-extrabold text-brand-text dark:text-white">
+                مراجعة تفاصيل الطلب وتأكيد الإرسال
+              </h2>
+              <p className="text-xs text-brand-muted dark:text-brand-dark-muted mt-1">
+                تأكد من صحة بياناتك قبل الإرسال. سيتم إنشاء كود تتبع خاص بك وتوجيهك فوراً للتواصل.
+              </p>
+            </div>
+
+            {/* Summary Review Card */}
+            <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div>
+                  <span className="text-slate-400 block mb-1">نوع التنفيذ:</span>
+                  <span className="font-extrabold text-brand-text dark:text-white">
+                    {executionMode === 'existing_project'
+                      ? `تخصيص نموذج: ${currentProject?.title || 'نموذج محدد'}`
+                      : 'بناء وبرمجة مخصصة من الصفر'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-1">تصنيف المشروع:</span>
+                  <span className="font-extrabold text-brand-text dark:text-white">{projectType}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-1">النشاط والدولة:</span>
+                  <span className="font-bold text-brand-text dark:text-white">{industry} ({country})</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-1">الميزانية والمدة:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    {budgetRange} ({desiredTimeframe})
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-slate-400 block mb-1">ملخص فكرة المشروع:</span>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+                  {description}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-slate-500">بيانات مقدم الطلب:</span>
+                <span className="font-extrabold text-brand-primary dark:text-purple-300">
+                  {fullName} | {phone} | {email}
+                </span>
+              </div>
+            </div>
+
+            {/* Consent & NDA Banner */}
+            <div className="p-4 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-brand-primary dark:text-purple-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>حماية كاملة لأفكارك واتفاقية عدم إفصاح (NDA)</span>
+              </div>
+              <label className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5 rounded border-slate-300 text-brand-primary focus:ring-brand-primary"
+                />
+                <span className="leading-relaxed">
+                  أوافق على سياسة الخصوصية وشروط الاستخدام، وأفوض فريق أنجزها بدراسة متطلباتي والتواصل معي لتقديم الاستشارة وعرض السعر.
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* Wizard Controls Footer (Back / Next / Submit) */}
+        <div className="pt-6 border-t border-brand-border/60 dark:border-brand-dark-border flex items-center justify-between gap-4">
+          {currentStep > 1 ? (
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition-colors"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span>الخطوة السابقة</span>
+            </button>
+          ) : (
+            <div />
+          )}
+
+          {currentStep < 7 ? (
+            <button
+              type="button"
+              onClick={validateAndNext}
+              className="inline-flex items-center gap-1.5 px-7 py-3 rounded-xl bg-brand-primary hover:bg-brand-primaryHover text-white text-xs font-extrabold transition-all shadow-md active:scale-95"
+            >
+              <span>المتابعة للخطوة التالية</span>
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-brand-accent hover:bg-brand-accentHover text-white text-sm font-extrabold transition-all shadow-lg shadow-orange-900/20 active:scale-95 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>جاري حفظ الطلب والتحويل للواتساب...</span>
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-4 h-4" />
+                  <span>إرسال الطلب والتواصل بالواتساب</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </form>
     </div>

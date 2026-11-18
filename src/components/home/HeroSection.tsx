@@ -15,30 +15,22 @@ export function HeroSection() {
           <div className="lg:col-span-7 space-y-6 text-center lg:text-right">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-subtle dark:bg-brand-dark-surface border border-brand-border dark:border-brand-dark-border text-xs font-bold text-brand-primary dark:text-brand-dark-primary">
               <span className="w-2 h-2 rounded-full bg-brand-accent dark:bg-brand-dark-action animate-pulse" />
-              <span>منصة تنفيذ المشاريع الرقمية والنماذج الجاهزة</span>
+              <span>منصة الإنتاج الرقمي والهندسة البرمجية المتكاملة</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-brand-text dark:text-brand-dark-text leading-[1.2] tracking-tight">
-              فكرتك تستاهل <br />
+              فكرتك تستحق أن <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-800 to-purple-950 dark:from-purple-300 dark:to-purple-500">
-                تتنفذ باحتراف
+                تتحول إلى واقع رقمي
               </span>
             </h1>
 
             <p className="text-base sm:text-lg text-brand-muted dark:text-brand-dark-muted max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              من المواقع والمتاجر الإلكترونية إلى تطبيقات الموبايل والأنظمة السحابية. اكتشف نماذج حقيقية قابلة للتخصيص، أو ابدأ مشروعك الجديد بالكامل من الصفر.
+              من الفكرة إلى الإطلاق، نصمم ونطور المواقع والتطبيقات والأنظمة الرقمية التي تساعد أعمالك على النمو والتوسع، بكود نظيف وتجربة مستخدم استثنائية.
             </p>
 
             {/* CTAs */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <Link
-                href="/projects"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-brand-primary dark:bg-brand-dark-primary text-white font-bold text-base hover:bg-brand-primaryHover dark:hover:bg-purple-600 transition-all shadow-md shadow-purple-900/20 active:scale-[0.98]"
-              >
-                <span>استكشف المشاريع</span>
-                <ArrowLeft className="w-4 h-4" />
-              </Link>
-
               <ProjectLaunchButton
                 href="/start-project"
                 variant="glow"
@@ -46,17 +38,25 @@ export function HeroSection() {
               >
                 <span>ابدأ مشروعك</span>
               </ProjectLaunchButton>
+
+              <Link
+                href="/projects"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white dark:bg-brand-dark-surface border border-brand-border dark:border-brand-dark-border text-brand-text dark:text-brand-dark-text font-bold text-base hover:border-brand-primary dark:hover:border-purple-400 transition-all shadow-xs active:scale-[0.98]"
+              >
+                <span>استكشف مشاريعنا</span>
+                <ArrowLeft className="w-4 h-4 text-brand-primary dark:text-purple-400" />
+              </Link>
             </div>
 
             {/* Value Highlights */}
             <div className="pt-6 border-t border-brand-border/60 dark:border-brand-dark-border/60 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-brand-muted dark:text-brand-dark-muted font-medium">
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-brand-primary dark:text-brand-dark-primary" />
-                <span>نماذج حقيقية قابلة للتخصيص</span>
+                <span>نماذج حقيقية قابلة للتخصيص الفوري</span>
               </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>تنفيذ برمجي آمن ومتكامل</span>
+                <span>اتفاقية عدم إفصاح (NDA) لحماية أفكارك</span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-brand-accent dark:text-brand-dark-action" />

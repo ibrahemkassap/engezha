@@ -6,7 +6,7 @@ import {
   buildInquiryWhatsAppUrl,
   buildDeveloperSubmissionWhatsAppUrl,
 } from '@/lib/utils';
-import { DEMO_PROJECTS, INITIAL_CATEGORIES } from '@/lib/catalog-config';
+import { DEMO_PROJECTS, INITIAL_CATEGORIES, CORE_SERVICES, INITIAL_BLOG_ARTICLES } from '@/lib/catalog-config';
 
 describe('Utility Functions', () => {
   it('generates unique request IDs adhering to ENG-2026-XXXX format', () => {
@@ -108,6 +108,33 @@ describe('Catalog Integrity and Slugs Uniqueness', () => {
       expect(p.is_demo).toBe(true);
       expect(p.review_count).toBe(0);
       expect(p.avg_rating).toBeUndefined();
+      expect(p.production_status).toBeDefined();
+      expect(p.industry).toBeDefined();
+    });
+  });
+
+  it('has 8 core services with complete deliverables, tech stack, and unique slugs', () => {
+    expect(CORE_SERVICES.length).toBe(8);
+    const serviceSlugs = new Set(CORE_SERVICES.map((s) => s.slug));
+    expect(serviceSlugs.size).toBe(8);
+
+    CORE_SERVICES.forEach((s) => {
+      expect(s.title).toBeTruthy();
+      expect(s.deliverables.length).toBeGreaterThan(0);
+      expect(s.technologies.length).toBeGreaterThan(0);
+      expect(s.faq.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('has initial blog articles with valid authors, content, and unique slugs', () => {
+    expect(INITIAL_BLOG_ARTICLES.length).toBeGreaterThanOrEqual(3);
+    const articleSlugs = new Set(INITIAL_BLOG_ARTICLES.map((a) => a.slug));
+    expect(articleSlugs.size).toBe(INITIAL_BLOG_ARTICLES.length);
+
+    INITIAL_BLOG_ARTICLES.forEach((a) => {
+      expect(a.title).toBeTruthy();
+      expect(a.content.length).toBeGreaterThan(50);
+      expect(a.author.name).toBeTruthy();
     });
   });
 });
